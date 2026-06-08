@@ -14,7 +14,7 @@
 
 <li>
   <div class="flex items-center justify-between w-full">
-    <a href="{{ category.path }}" class="flex-1 block text-base py-2.5 break-words">{{ category.name }}</a>
+    <a href="{{ category.path }}" class="flex-1 block text-base uppercase tracking-[var(--ora-tracking-caps)] py-2.5 break-words">{{ category.name }}</a>
     {% if category.children.size > 0 %}
       <input
         id="{{ toggle_id }}"

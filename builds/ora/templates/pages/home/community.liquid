@@ -1,0 +1,44 @@
+<section class="ora-community">
+  <div class="container ora-community__inner">
+    <div class="ora-community__head">
+      <p class="ora-eyebrow">Da nossa comunidade</p>
+      <h2 class="ora-community__title">
+        <span class="ora-serif">Você +</span>
+        <span class="ora-grotesk">Ora</span>
+      </h2>
+      <p class="ora-community__lead">
+        Marque @ora.lingerie e apareça por aqui — pessoas reais vestindo a Ora,
+        no corpo e no dia a dia.
+      </p>
+    </div>
+
+    <div class="ora-community__track">
+      {%- comment -%} Conteúdo editorial de prova social (assets de marca) {%- endcomment -%}
+      {%- assign handles = 'lala.movimento|2.5K seguidores,nadia|1K seguidores,flikshaw|107.8K seguidores' | split: ',' -%}
+      {%- assign photos = 'ugc-1.jpg,ugc-2.jpg,ugc-3.jpg' | split: ',' -%}
+      {%- assign prods = 'Conjunto Bandeau|Seu segundo corpo|packshot-bra.png,Calcinha Tanga|Conforto o dia todo|packshot-calcinha.png,Top Bandeau|Liberdade em forma|packshot-bra.png' | split: ',' -%}
+      {%- for photo in photos -%}
+        {%- assign i = forloop.index0 -%}
+        {%- assign h = handles[i] | split: '|' -%}
+        {%- assign p = prods[i] | split: '|' -%}
+        {%- assign img = 'brand/' | append: photo -%}
+        {%- assign thumb = 'brand/' | append: p[2] -%}
+        <article class="ora-ugc">
+          <div class="ora-ugc__media">
+            <img src="{% asset_url img %}" alt="{{ h[0] }} vestindo Ora" loading="lazy">
+            <div class="ora-ugc__scrim"></div>
+            <div class="ora-ugc__cred">
+              <span class="ora-ugc__avatar"><img src="{% asset_url img %}" alt=""></span>
+              <span class="ora-ugc__handle"><b>{{ h[0] }}</b><span>{{ h[1] }}</span></span>
+            </div>
+          </div>
+          <div class="ora-ugc__buy">
+            <span class="ora-ugc__thumb"><img src="{% asset_url thumb %}" alt=""></span>
+            <span class="ora-ugc__prod"><b>{{ p[0] }}</b><span>{{ p[1] }}</span></span>
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+

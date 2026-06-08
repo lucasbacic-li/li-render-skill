@@ -5,7 +5,7 @@
     <div class="flex flex-col gap-1 py-5" id="product-info" hx-swap-oob="true">
       {% if data.product.brand.name %}
         {% assign brand = data.product.brand %}
-          <a href="/marca{{ brand.path }}" class="block text-xs uppercase text-base-content font-medium hover:underline">{{ brand.name }}</a>
+          <a href="/marca{{ brand.path }}" class="block text-xs uppercase tracking-[var(--ora-tracking-caps)] text-base-content font-medium hover:underline">{{ brand.name }}</a>
       {% endif %}
       <div class="flex items-start justify-between">
         <h1 class="flex-1 break-words text-base-content">

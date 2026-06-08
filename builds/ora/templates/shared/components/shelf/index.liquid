@@ -54,6 +54,24 @@
 {%- assign shelf_justify_items = '' -%}
 
 {%- if shelf_products.size > 0 -%}
+  {%- if shelf_type == 'grid-snap' -%}
+    {%- comment -%}
+      Vitrine da home: 4 produtos FIXOS em grid no desktop (sem slider) e
+      scroll-snap nativo no mobile (slide por swipe, sem embla/JS). Limite de 4.
+      CSS em .ora-shelf__grid (theme.css). Opt-in: só a home passa este tipo;
+      autocomplete/recomendações seguem no embla.
+    {%- endcomment -%}
+    <div class="ora-shelf flex flex-col gap-6 py-4 content-auto-[500px]">
+      {%- if show_title and shelf_title -%}
+        <h2 class="ora-shelf__title text-[var(--ora-section-head)] font-medium text-base-content">{{ shelf_title }}</h2>
+      {%- endif -%}
+      <div class="ora-shelf__grid">
+        {% for product in shelf_products limit: 4 %}
+          {% render 'shared/components/product-card/index', product: product, forloop: forloop %}
+        {% endfor %}
+      </div>
+    </div>
+  {%- else -%}
   <div class="container flex flex-col gap-6 py-4 max-md:px-0 content-auto-[500px]">
     {%- if shelf_type == 'carousel' -%}
       <carousel-embla
@@ -67,7 +85,7 @@
       >
         <div class="flex items-center justify-between gap-5 px-4 md:px-0">
           {%- if show_title and shelf_title -%}
-            <h2 class="text-[clamp(1.3rem,2.4vw,2rem)] font-medium text-base-content">
+            <h2 class="text-[var(--ora-section-head)] font-medium text-base-content">
               {{ shelf_title }}
             </h2>
           {%- else -%}
@@ -139,7 +157,7 @@
     {%- else -%}
       {%- comment -%} Grid mode {%- endcomment -%}
       {%- if show_title and shelf_title -%}
-        <h2 class="text-[clamp(1.3rem,2.4vw,2rem)] font-medium text-base-content md:py-2">
+        <h2 class="text-[var(--ora-section-head)] font-medium text-base-content md:py-2">
           {{ shelf_title }}
         </h2>
       {%- endif -%}
@@ -150,5 +168,7 @@
       </div>
     {%- endif -%}
   </div>
+  {%- endif -%}
 {%- endif -%}
+
 

@@ -4,9 +4,10 @@
 
 {%- if _render_shelf and data.shelf_result.products.size > 0 -%}
   {%- assign shelf_products = data.shelf_result.products -%}
-  {% render 'shared/components/shelf/index', 
+  {% render 'shared/components/shelf/index',
     products: shelf_products,
     title: props.title,
-    shelf_type: 'carousel'
+    shelf_type: 'grid-snap'
   %}
 {%- endif -%}
+

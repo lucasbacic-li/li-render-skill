@@ -1,0 +1,19 @@
+<section class="ora-browser">
+  <img class="ora-browser__photo" src="{% asset_url 'brand/editorial-categorias.jpg' %}" alt="" loading="lazy">
+  <div class="ora-browser__scrim" aria-hidden="true"></div>
+  <div class="ora-browser__overlay">
+    <div class="container ora-browser__inner">
+      <h2 class="ora-browser__headline">Da reunião importante,<br>ao date especial.</h2>
+      <nav class="ora-cats" aria-label="Categorias">
+        <span class="ora-cats__eyebrow ora-eyebrow">O que seu corpo pede?</span>
+        {%- for category in data.categories limit: 5 -%}
+          <a class="ora-cat" href="{{ category.path }}">
+            <span class="ora-cat__n">{{ forloop.index }}</span>
+            <span class="ora-cat__name">{{ category.name }}</span>
+          </a>
+        {%- endfor -%}
+      </nav>
+    </div>
+  </div>
+</section>
+
