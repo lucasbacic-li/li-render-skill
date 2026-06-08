@@ -1,0 +1,16 @@
+{% assign product = data.product %}
+{% assign selected_sku = data.product.selected_sku %}
+
+<div id="floating-buy-sheet" class="bottom-sheet">
+  <div 
+    class="bottom-sheet-overlay"
+    data-action="close-floating-buy"
+  ></div>
+  
+  <div class="bottom-sheet-content">
+    <div class="p-6 bg-base-100 flex flex-col gap-6">
+      {% render 'pages/product/components/product-variations/index', target_id: 'floating-product-buy-button-container', is_floating: true, drawer: true %}
+    </div>
+  </div>
+</div>
+

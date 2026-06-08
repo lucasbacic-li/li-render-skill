@@ -1,0 +1,11 @@
+<div class="flex flex-col gap-4 items-start mb-5">
+  {%- assign price_varies = data.product.price_varies and data.product.selected_sku == null -%}
+  {% render "partials/product-pricing", price: price, price_varies: price_varies, class_default: "text-base", class_highlight: "text-xl", class_container: "gap-0.5", highlight_installment: "text-sm" %}
+  <button
+    type="button"
+    class="link inline-flex items-center justify-center gap-2 text-sm"
+    onclick="product_payments_modal.showModal()"
+  >
+    mais formas de pagamento
+  </button>
+</div>

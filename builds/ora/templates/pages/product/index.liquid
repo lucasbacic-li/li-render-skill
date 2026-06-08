@@ -1,0 +1,49 @@
+{% assign selected_sku = data.product.selected_sku %}
+<div class="md:col-start-2 md:row-start-2 md:row-span-5">
+  <sticky-container class="block md:top-0">
+    {% comment %} {% render 'pages/product/badges', tag_location: 'after_title' %} {% endcomment %}
+    <div class="flex flex-col gap-1 py-5" id="product-info" hx-swap-oob="true">
+      {% if data.product.brand.name %}
+        {% assign brand = data.product.brand %}
+          <a href="/marca{{ brand.path }}" class="block text-xs uppercase text-base-content font-medium hover:underline">{{ brand.name }}</a>
+      {% endif %}
+      <div class="flex items-start justify-between">
+        <h1 class="flex-1 break-words text-base-content">
+          {{ data.product.name }}
+        </h1>
+        {% render 'pages/product/components/favorites/index', product_id: data.product.id %}
+      </div>
+      {% appsection after_product_title %}
+      {% render 'components/product-rating', product: data.product, size: 'xs' %}
+    </div>
+
+    <div id="product-summary">
+      {% if selected_sku %}
+        {% if selected_sku.available %}
+          {% unless selected_sku.price.upon_request %}
+            {% render 'pages/product/components/pricing/index', price: selected_sku.price %}
+          {% endunless %}
+        {% endif %}
+      {% else %}
+        {% if data.product.available %}
+          {% unless data.product.price.upon_request %}
+            {% render 'pages/product/components/pricing/index', price: data.product.price %}
+          {% endunless %}
+        {% endif %}
+      {% endif %}
+      <div class="relative flex flex-col gap-5 md:gap-8 rounded-box">
+        {% render 'pages/product/components/product-variations/index' %}
+        {% if selected_sku == null or selected_sku.price.upon_request == false and selected_sku.available %}
+          {% render 'pages/product/components/shipping/index', selected_sku: selected_sku %}
+        {% endif %}
+        <span id="prod-variations-selector-spinner" class="hidden [&.htmx-request]:flex absolute inset-0 size-full z-10 rounded-box bg-base-content/10"></span>
+      </div>
+    </div>
+    <div class="pointer-events-none sticky bottom-0 flex h-10 bg-neutral mask-t-from-0%"></div>
+  </sticky-container>
+  {% comment %} Floating Buy Button {% endcomment %}
+  {% render 'pages/product/components/floating-buy-button/index' %}
+  <script defer src="{% asset_url '/scripts/sticky-container.webc.js' %}"></script>
+  <div id="upon-request-portal"></div>
+  <div id="notify-me-portal"></div>
+</div>

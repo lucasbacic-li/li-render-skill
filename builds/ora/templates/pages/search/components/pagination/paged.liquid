@@ -1,0 +1,27 @@
+<div class="flex items-center justify-between gap-2 w-full h-16">
+  <p class="text-sm">
+    <span class="font-medium">{{ data.search_result.total }}</span> resultado{{ data.search_result.total | pluralize }}
+  </p>
+  <nav>
+    {% if data.search_result.pagination.total_pages > 0 %}
+      {% assign pagination = data.search_result.pagination %}
+      <div class="join">
+        <a class="join-item btn btn-neutral btn-sm btn-square {% unless pagination.previous_page %}btn-disabled{% endunless %}" href="{% if pagination.previous_page %}?{{ pagination.previous_page }}{% endif %}" title="Página anterior" data-testid="li-pagination-previous">
+          <svg class="fill-current size-3 shrink-0" role="img" aria-hidden="true">
+            <use xlink:href="/static/img/fontawesome-solid.svg#chevron-left" href="/static/img/fontawesome-solid.svg#chevron-left"></use>
+          </svg>
+        </a>
+        {% for page in pagination.pages %}
+          <a class="join-item btn btn-neutral btn-sm btn-square hidden md:flex {% if page.current %}btn-active{% endif %} {% unless page.link %}btn-disabled{% endunless %}" href="{% if page.link %}?{{ page.link }}{% endif %}" title="Página {% if page.current %}atual{% else %}{{ page.label }}{% endif %}" data-testid="li-pagination-page{% if page.current %}-current{% endif %}">
+            {{- page.label -}}
+          </a>
+        {% endfor %}
+        <a class="join-item btn btn-neutral btn-sm btn-square {% unless pagination.next_page %}btn-disabled{% endunless %}" href="{% if pagination.next_page %}?{{ pagination.next_page }}{% endif %}" title="Próxima página" data-testid="li-pagination-next">
+          <svg class="fill-current size-3 shrink-0" role="img" aria-hidden="true">
+            <use xlink:href="/static/img/fontawesome-solid.svg#chevron-right" href="/static/img/fontawesome-solid.svg#chevron-right"></use>
+          </svg>
+        </a>
+      </div>
+    {% endif %}
+  </nav>
+</div>

@@ -1,0 +1,56 @@
+{%- assign class_default = class_default | default: "text-xs" -%}
+{%- assign class_highlight = class_highlight | default: "text-base" -%}
+{%- assign highlight_price = class_default -%}
+{%- assign highlight_installment = highlight_installment | default: class_default -%}
+{%- assign highlight_discount = class_default -%}
+
+{%- if layout_attributes.configuracao.listagem_produto.destaque == "parcela" -%}
+  {%- assign highlight_installment = class_highlight -%}
+{%- elsif layout_attributes.configuracao.listagem_produto.destaque == "preco" -%}
+  {%- assign highlight_price = class_highlight -%}
+{%- elsif layout_attributes.configuracao.listagem_produto.destaque == "avista" -%}
+  {%- assign highlight_discount = class_highlight -%}
+{%- else -%}
+  {%- assign highlight_price = class_highlight -%}
+{%- endif -%}
+
+{% if price %}
+  <div class="flex flex-col {{ class_container }}">
+    {%- assign price_discount = price.best_payment_condition.discount -%}
+    {%- assign price_installment = price.best_payment_condition.installment -%}
+    <div class="flex flex-col gap-1 {{ class_default }}">
+      {% if price.base and price.base > price.selling %}
+        <span class="text-base-content opacity-60 line-through block" data-testid="li-product-price-base">
+          {{ price.base | format_number: "C" }}
+        </span>
+      {% endif %}
+      <span class="block">
+        {% if price_varies %}<span class="text-base-content/70">A partir de </span>{% endif %}
+        <strong class="font-semibold {{ highlight_price }}" data-testid="li-product-price-selling">{{ price.selling | format_number: "C" }}</strong>
+      </span>
+    </div>
+    {% if price_installment and show_installment != false %}
+      <span class="block text-sm">
+        <strong class="{{ highlight_installment }}">{{ price_installment.installment_number }}x</strong> de <strong class="{{ highlight_installment }}">{{ price_installment.installment_value | format_number: "C" }}</strong>
+        {% if price_installment.no_rate %} sem juros{% endif %}
+      </span>
+    {% endif %}
+    {%- if show_discount != false and price_discount.price < price.selling -%}
+      <span class="text-sm">
+        ou
+        <strong class="{{ highlight_discount }}" data-testid="li-product-price-discount">{{ price_discount.price | format_number: "C" }}</strong>
+        via
+        {% if price_discount.payment_code contains "-external" %}
+          Cartão de crédito
+        {% elsif price_discount.payment_code contains "-boleto" %}
+          Boleto Bancário
+        {% elsif price_discount.payment_code contains "-pix" %}
+          Pix
+        {% else %}
+          {{ price_discount.payment_type }}
+        {% endif %}
+      </span>
+    {% endif %}
+  </div>
+{% endif %}
+

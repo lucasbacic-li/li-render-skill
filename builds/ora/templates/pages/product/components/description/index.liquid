@@ -1,0 +1,13 @@
+{% if data.product.description and data.product.description != "" %}
+  <div class="collapse collapse-plus content-auto-[300px]">
+    <input type="checkbox" name="description-accordion" checked aria-label="Expandir descrição do produto" />
+    <div class="collapse-title">Descrição</div>
+    <div class="collapse-content pb-10">
+      <div class="prose max-w-full text-sm font-normal text-base-content" hx-disable>
+        {{ data.product.description | sanitize | raw }}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% appsection after_product_description %}

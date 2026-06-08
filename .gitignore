@@ -1,0 +1,10 @@
+# dependências
+node_modules/
+
+# OS / editor
+.DS_Store
+*.log
+
+# li-cli (sessão/credenciais ficam no home do usuário, nunca no repo — guard extra)
+.li/
+*.session

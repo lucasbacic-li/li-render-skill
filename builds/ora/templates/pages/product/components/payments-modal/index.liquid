@@ -1,0 +1,68 @@
+<dialog id="product_payments_modal" class="modal">
+  <div class="modal-box">
+    <form method="dialog">
+      <button class="btn btn-sm btn-circle btn-ghost ora-btn-icon absolute right-2 top-2">✕</button>
+    </form>
+    <h3 class="ora-sheet-title">Formas de pagamento</h3>
+    <div class="pt-6 relative w-auto flex flex-col gap-8">
+      {%- assign payment_conditions = data.payment_conditions -%}
+      {%- assign payment_condition = payment_conditions | where: 'product_id', data.product.selected_sku.id | first -%}
+      {%- unless payment_condition -%}
+        {%- assign payment_conditions = payment_conditions | sort: 'price' -%}
+        {%- assign payment_condition = payment_conditions | first -%}
+      {%- endunless -%}
+      {% for payment in payment_condition.payments %}
+        {%- assign payment_name = payment.names | first -%}
+        {%- assign payment_icon = "fontawesome-solid.svg#wallet" -%}
+        {%- if "creditCard,googlePay" contains payment.group_name or payment.code == "proxy-paypal-bcdc-v1-external" -%}
+          {%- assign payment_name = "Cartão de crédito" -%}
+          {%- assign payment_icon = "fontawesome-solid.svg#credit-card" -%}
+        {%- elsif "bankInvoice" contains payment.group_name -%}
+          {%- assign payment_name = "Boleto Bancário" -%}
+          {%- assign payment_icon = "fontawesome-solid.svg#barcode" -%}
+        {%- elsif "instantPayment" contains payment.group_name -%}
+          {%- assign payment_name = "Pix" -%}
+          {%- assign payment_icon = "fontawesome-brands.svg#pix" -%}
+        {%- elsif "paypalBCDC" contains payment.group_name -%}
+          {%- assign payment_name = "Paypal" -%}
+          {%- assign payment_icon = "fontawesome-brands.svg#paypal" -%}
+        {%- elsif "entrega" contains payment.group_name -%}
+          {%- assign payment_name = "Pagamento na entrega" -%}
+          {%- assign payment_icon = "fontawesome-solid.svg#truck" -%}
+        {%- endif -%}
+        <div class="flex flex-wrap items-center justify-between gap-2 text-base font-medium">
+          <p class="flex items-center gap-2">
+            {%- if payment_icon -%}
+              <svg class="fill-current size-5" role="img" aria-hidden="true">
+                <use xlink:href="/static/img/{{ payment_icon }}" href="/static/img/{{ payment_icon }}"></use>
+              </svg>
+            {%- endif -%}
+            {{ payment_name }}
+          </p>
+          {% if payment.discount_value > 0 %}
+            <span class="badge badge-primary badge-soft badge-sm">
+              {{ payment.discount_value | round }}% de desconto
+            </span>
+          {% endif %}
+          <div class="w-full sm:grid grid-flow-row-dense grid-cols-2 text-base text-base-content font-medium gap-2">
+            {% assign half_size = payment.installments_factor.size | divided_by: 2.0 | ceil %}
+            {% for installment_factor in payment.installments_factor %}
+              {% assign is_first_half = forloop.index <= half_size %}
+              <p class="{% if is_first_half %}col-start-1{% else %}col-start-2{% endif %}">
+                {{ installment_factor.installments }}x de {{ installment_factor.value | format_number: "C" }}
+                {% if installment_factor.interest_free %} sem juros{% endif %}
+              </p>
+            {% else %}
+              <p class="col-span-2">
+                1x de {{ payment.total_price | format_number: "C" }}
+              </p>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>Fechar</button>
+  </form>
+</dialog>

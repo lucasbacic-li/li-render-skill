@@ -1,0 +1,29 @@
+{%- comment -%}
+  Mega Menu - Todas as categorias
+  
+  Layout:
+  - Coluna 1: Lista de categorias (primeiro nível)
+  - Coluna 2: Subcategorias (aparece no hover)
+  - Coluna 3: Sub-subcategorias (aparece no hover do nível 2)
+  - Product Suggestion: Aparece ao lado quando não há submenu aberto (carregado async)
+{%- endcomment -%}
+
+<div class="mega-menu">
+  <input id="mega-menu-toggle" type="checkbox" class="mega-menu-toggle hidden" />
+  <div class="w-full relative z-2 bg-neutral">
+    <div class="mega-menu-content container">
+      {%- comment -%} Categorias - Reutiliza o menu-dropdown {%- endcomment -%}
+      {% render 'shared/components/header/components/menu/menu-dropdown', categories: data.categories, position: 'mega', show_children: true %}
+      {%- comment -%} Product Suggestion - Carregado de forma assíncrona {%- endcomment -%}
+      <div 
+        id="menu_product_suggestion"
+        class="mega-menu-products"
+        hx-trigger="intersect once"
+        hx-get="/partial/menu/product-suggestion"
+        hx-select="#menu_product_suggestion"
+        hx-swap="outerHTML"
+      ></div>
+    </div>
+  </div>
+  <label class="mega-menu-backdrop" for="mega-menu-toggle"></label>
+</div>

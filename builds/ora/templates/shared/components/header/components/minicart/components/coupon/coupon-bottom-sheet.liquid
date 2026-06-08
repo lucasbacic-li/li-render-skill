@@ -1,0 +1,27 @@
+{%- comment -%}
+  Componente: Coupon Bottom Sheet
+  Descrição: Modal bottom sheet para aplicar/remover cupom de desconto
+  Usa as classes genéricas .bottom-sheet
+{%- endcomment -%}
+
+<bottom-sheet-dialog class="bottom-sheet active">
+  <div
+    class="bottom-sheet-overlay bottom-sheet-close"
+  ></div>
+  
+  <div class="bottom-sheet-content">
+    <div class="ora-drawer-head">
+      <span class="ora-drawer-head__title ora-sheet-title">Adicionar cupom</span>
+      <button type="button" class="ora-drawer-head__close bottom-sheet-close" aria-label="Fechar">
+        <span class="material-symbols-sharp" aria-hidden="true">close</span>
+      </button>
+    </div>
+    <div id="coupon-container" class="p-6 flex flex-col gap-4">
+      {% render 'shared/components/header/components/minicart/components/coupon/coupon-form', with_session: with_session %}
+    </div>
+  </div>
+</bottom-sheet-dialog>
+
+<script defer src="{% asset_url '/scripts/bottom-sheet-dialog.webc.js' %}"></script>
+
+{%- comment -%}ora-sync{%- endcomment -%}

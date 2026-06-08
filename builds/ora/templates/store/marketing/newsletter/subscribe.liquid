@@ -1,0 +1,22 @@
+<div data-newsletter-state>
+  <script>
+    document.dispatchEvent(
+      new CustomEvent('li-newsletter-status', {
+        detail: {
+          status: '{%- if data.newsletter.id -%}success{%- else -%}error{%- endif -%}',
+          success_message: {%- if data.newsletter.id -%}'{{ props.success_message | default: layout_attributes.newsletter.boxnews_sucesso | default: 'Obrigado por se inscrever! Aguarde novidades da nossa loja em breve.' }}'{%- else -%}null{%- endif -%}
+        },
+      })
+    );
+  </script>
+</div>
+
+<script type="text/javascript" id="toast-trigger" hx-swap-oob="true">
+  if (typeof window.toast === 'function') {
+    {%- if data.newsletter.id -%}
+      window.toast('Seu e-mail for incluído na nossa newsletter', {type: 'success'});
+    {%- else -%}
+      window.toast('Erro ao se cadastrar na nossa newsletter', {type: 'danger'});
+    {%- endif -%}
+  };
+</script>

@@ -1,0 +1,53 @@
+{% if data.search_result.pagination %}
+  {%- comment -%} Calcula quantos produtos foram carregados até agora {%- endcomment -%}
+  {%- assign current_page = ctx.url.querystring.page | default: 1 | plus: 0 -%}
+  {%- assign page_size = ctx.url.querystring["size"] | default: 20 | plus: 0 -%}
+  {%- assign total = data.search_result.total | default: 0 | plus: 0 -%}
+  {%- assign loaded = current_page | times: page_size -%}
+  {%- if loaded > total -%}
+    {%- assign loaded = total -%}
+  {%- endif -%}
+  {% if total > 0 %}
+    {%- assign progress_percent = loaded | times: 100.0 | divided_by: total -%}
+    <div class="{% if paged %}hidden{% endif %}">
+      <div
+        id="li-search-infinite-scroll-trigger"
+        class="flex flex-col items-center gap-4 py-0"
+      >
+        <p class="text-sm font-medium text-base-content text-center leading-5">
+          Mostrando {{ loaded }} de {{ total }} produtos
+        </p>
+        
+        <div class="w-full max-w-62.5 h-1 bg-base-100 rounded-full overflow-hidden">
+          <div
+            class="h-full bg-primary transition-all duration-300" 
+            style="width: {{ progress_percent }}%;"
+          ></div>
+        </div>
+
+        {% if data.search_result.pagination.next_page %}    
+          <a 
+            type="button"
+            class="btn btn-secondary rounded-full"
+            href="?{{ data.search_result.pagination.next_page }}"
+            hx-get="?{{ data.search_result.pagination.next_page }}"
+            hx-trigger="click"
+            hx-select="#li-search-infinite-scroll-trigger"
+            hx-target="#li-search-infinite-scroll-trigger"
+            hx-swap="outerHTML"
+            hx-push-url="true"
+            hx-indicator="#li-search-infinite-spinner"
+            data-testid="li-pagination-more"
+          >
+            <span>Mostrar mais</span>
+            <span id="li-search-infinite-spinner" class="hidden [&.htmx-request]:block">
+              <svg class="fill-current animate-spin size-5" role="img" aria-hidden="true">
+                <use xlink:href="/static/img/fontawesome-solid.svg#spinner" href="/static/img/fontawesome-solid.svg#spinner"></use>
+              </svg>
+            </span>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endif %}

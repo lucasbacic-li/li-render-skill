@@ -1,0 +1,85 @@
+{%- assign should_init_popup = false -%}
+{%- if props.async != true and async != true -%}
+  {%- assign should_init_popup = true -%}
+{%- endif -%}
+{%- if layout_attributes.newsletter.boxnews_popup -%}
+  {%- if layout_attributes.newsletter.boxnews_acao == 'inicial' -%}
+    {%- assign should_init_popup = true -%}
+  {%- elsif layout_attributes.newsletter.boxnews_acao == 'evento' -%}
+    {%- if ctx.location == 'product' or ctx.location == 'category' or ctx.location == 'brand' or ctx.location == 'search' -%}
+      {%- assign should_init_popup = true -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endif -%}
+{% if should_init_popup %}
+  {% if props.async or async %}
+    <newsletter-subscribe
+      data-popup data-trigger="{{ layout_attributes.newsletter.boxnews_tempo_acao }}"
+      data-trigger-delay="{{ layout_attributes.newsletter.boxnews_tempo_execucao | default: 0 }}"
+      data-newsletter-popup
+      hx-get="/partial/newsletter/popup"
+      hx-select="[data-newsletter-popup]"
+      hx-trigger="newsletter-popup-show"
+      hx-swap="outerHTML"
+    ></newsletter-subscribe>
+  {% else %}
+    <newsletter-subscribe data-newsletter-popup>
+      <dialog class="modal" open>
+        <div class="modal-box">
+          <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost ora-btn-icon absolute right-2 top-2">✕</button>
+          </form>
+          <div data-newsletter-state></div>
+          <div class="flex flex-col gap-4 my-3">
+            <svg class="fill-current size-8 mx-auto -mt-1 -mb-0.5" role="img" aria-hidden="true">
+              <use xlink:href="/static/img/fontawesome-solid.svg#envelope" href="/static/img/fontawesome-solid.svg#envelope"></use>
+            </svg>
+            <div class="text-center">
+              <p class="font-semibold text-xl">{{ props.title | default: layout_attributes.newsletter.boxnews_titulo | default: 'Receba novidades e ofertas!' }}</p>
+              <p class="text-base leading-5">{{ props.subtitle | default: layout_attributes.newsletter.boxnews_intro | default: 'Fique por dentro do que acontece na loja, receba cupons e ofertas direto em seu e-mail.' }}</p>
+            </div>
+            <p class="newsletter-success-message text-center text-base text-success py-4 px-6 bg-base-100 border border-base-200 rounded-md hidden" aria-hidden="true"></p>
+            <form
+              method="post"
+              hx-post="{{ routes.marketing_newsletter_subscribe }}"
+              hx-target="[data-newsletter-state]"
+              hx-indicator="find [data-newsletter-spinner]"
+              hx-swap="innerHTML"
+              class="newsletter-subscribe-form relative"
+            >
+              <div class="flex flex-col gap-3 items-center justify-center w-full">
+                <input
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  required
+                  class="input w-full"
+                  placeholder="{{ props.input_placeholder | default: 'E-mail' }}"
+                  data-testid="li-newsletter-input"
+                />
+                <input
+                  name="name"
+                  type="hidden"
+                  placeholder="Digite seu nome"
+                  class="input w-full"
+                />
+                <button type="submit" class="btn btn-block btn-primary" data-testid="li-newsletter-submit">
+                  {{ props.button_text | default: 'Inscrever-se' }}
+                </button>
+              </div>
+              <p class="newsletter-error-message mt-1 text-error text-sm hidden" aria-hidden="true">Falha ao cadastrar. Tente novamente</p>
+              <span data-newsletter-spinner class="hidden [&.htmx-request]:flex absolute inset-0 size-full flex-wrap justify-center content-center bg-base-content/10">
+                <svg class="fill-current size-8 animate-spin" role="img" aria-hidden="true">
+                  <use xlink:href="/static/img/fontawesome-solid.svg#spinner" href="/static/img/fontawesome-solid.svg#spinner"></use>
+                </svg>
+              </span>
+            </form>
+          </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+          <button>Fechar</button>
+        </form>
+      </dialog>
+    </newsletter-subscribe>
+  {% endif %}
+{% endif %}

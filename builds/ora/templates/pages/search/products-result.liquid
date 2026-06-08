@@ -1,0 +1,22 @@
+{%- assign current_page = ctx.url.querystring.page | default: 1 | plus: 0 -%}
+{% if data.search_result.products.size > 0 %}
+  <div
+    class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+    id="li-search-results-grid"
+    {% if current_page > 1 %}
+      hx-select-oob="#li-search-results-grid"
+      hx-swap-oob="beforeend"
+    {% endif %}
+  >
+    {% for product in data.search_result.products %}
+      {% render 'shared/components/product-card/index', product: product, forloop: forloop %}
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="flex flex-col items-center justify-center gap-5 py-10">
+    <svg data-id="search-icon" class="fill-current size-10" role="img" aria-hidden="true">
+      <use xlink:href="/static/img/fontawesome-solid.svg#magnifying-glass" href="/static/img/fontawesome-solid.svg#magnifying-glass"></use>
+    </svg>
+    <h2 class="text-center">Nenhum produto encontrado</h2>
+  </div>
+{% endif %}

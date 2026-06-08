@@ -1,0 +1,21 @@
+{
+  "$schema": "https://cdn.awsli.com.br/public/render/schema/v1.json",
+  "partial": {
+    "path": "/partial/product/reviews",
+    "components": [
+      {
+        "data": {
+          "reviews": {
+            "function": "get_product_reviews"
+          }
+        },
+        "type": "template",
+        "template": "pages/product/components/reviews/index.liquid",
+        "properties": {
+          "content": "reviews"
+        }
+      }
+    ]
+  },
+  "_version": "3"
+}

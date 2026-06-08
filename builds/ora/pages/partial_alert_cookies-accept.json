@@ -1,0 +1,21 @@
+{
+  "$schema": "https://cdn.awsli.com.br/public/render/schema/v1.json",
+  "partial": {
+    "path": "/partial/alert/cookies-accept",
+    "components": [
+      {
+        "data": {
+          "institutional_pages": {
+            "function": "get_institutional_pages"
+          }
+        },
+        "type": "template",
+        "template": "shared/utils/alert-cookies.liquid",
+        "properties": {
+          "content": true
+        }
+      }
+    ]
+  },
+  "_version": "3"
+}

@@ -1,0 +1,141 @@
+{%- assign store_domain = ctx.store.domain -%}
+{%- assign current_domain = ctx.url.host | prepend: 'https://' -%}
+
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- comment -%} ################# CANONICAL ################ {%- endcomment -%}
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- if data.product.url -%}
+  <link rel="canonical" href="{{ data.product.url | prepend: store_domain }}" />
+{%- endif -%}
+{%- if data.category.path -%}
+  <link rel="canonical" href="{{ data.category.path | prepend: store_domain }}" />
+{%- endif -%}
+{%- if data.institutional_page.url -%}
+  <link rel="canonical" href="{{ data.institutional_page.url | prepend: "/pagina/" | prepend: store_domain }}" />
+{%- endif -%}
+
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- comment -%} ################# TITLE ################ {%- endcomment -%}
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- if ctx.url.path == '/' -%}
+  <title>{{ ctx.store.name_title | default: ctx.store.name }}</title>
+{%- elsif data.category.name -%}
+  <title>{{ data.category.seo_title | default: data.category.name }} - {{ ctx.store.name }}</title>
+{%- elsif data.brand.name -%}
+  <title>{{ data.brand.name }} - {{ ctx.store.name }}</title>
+{%- elsif ctx.url.path contains 'search' or ctx.url.path contains 'buscar' and ctx.url.querystring.q -%}
+  <title>{{ ctx.url.querystring.q }} - {{ ctx.store.name }}</title>
+{%- elsif data.product.name -%}
+  {%- assign not_seo_title = data.product.seo.title | is_empty -%}
+  <title>{% if not_seo_title %}{{ data.product.name }}{% else %}{{ data.product.seo.title }}{% endif %} - {{ ctx.store.name }}</title>
+{%- elsif data.institutional_page.title -%}
+  <title>{{ data.institutional_page.title }} - {{ ctx.store.name }}</title>
+{%- else -%}
+  <title>{{ ctx.store.name }}</title>
+{%- endif -%}
+
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- comment -%} ################### ALL ################## {%- endcomment -%}
+{%- comment -%} ########################################## {%- endcomment -%}
+<meta name="theme-color" content="{{ layout_attributes.configuracao.cor_principal | default: '#FFFFFF' }}" />
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="pt_BR" />
+<meta property="og:url" content="{{ ctx.url.path | prepend: current_domain }}" />
+<meta property="og:site_name" content="{{ ctx.store.name }}" />
+<meta name="twitter:domain" content="{{ current_domain }}" />
+<meta name="twitter:url" content="{{ ctx.url.path | prepend: current_domain }}?utm_source=twitter&utm_medium=twitter&utm_campaign=twitter" />
+
+{%- assign favicon = ctx.store.favicon | default: ctx.store.logo -%}
+{%- if favicon -%}
+  {%- assign favicon_type = favicon | split:'.' | last -%}
+  {%- if favicon_type == 'ico' -%}
+    <link rel="icon" type="image/x-icon" href="{{ favicon }}" />
+  {%- else -%}
+    <link rel="shortcut icon" href="{{ favicon }}" />
+  {%- endif -%}
+  <link rel="icon" href="{{ favicon }}" sizes="192x192" />
+{%- endif -%}
+
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- comment -%} ########## ALL EXCEPT PRODUCT ############ {%- endcomment -%}
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- unless data.product.name -%}
+  {%- if ctx.store.logo -%}
+    <meta property="og:image" content="{{ ctx.store.logo }}" />
+  {%- endif -%}
+{%- endunless -%}
+
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- comment -%} ################## HOME ################## {%- endcomment -%}
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- if ctx.url.path == '/' -%}
+  <meta property="og:title" content="{{ ctx.store.name_title | default: ctx.store.name }}" />
+  <meta property="og:description" content="{%- if data.store.description -%}{{ data.store.description }}{%- else -%}{{ ctx.store.name }}{%- endif -%}" />
+  <meta name="description" content="{%- if data.store.description -%}{{ data.store.description }}{%- else -%}{{ ctx.store.name }}{%- endif -%}" />
+{%- endif -%}
+
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- comment -%} ############## CATEGORY ################## {%- endcomment -%}
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- if data.category.name -%}
+  <meta property="og:title" content="{{ data.category.seo_title | default: data.category.name }} - {{ ctx.store.name }}" />
+  <meta property="og:description" content="{{ data.category.seo_description | default: data.category.description | default: data.category.name | strip_html | truncate: 200 }}" />
+  <meta name="description" content="{{ data.category.seo_description | default: data.category.description | default: data.category.name | strip_html | truncate: 200 }}" />
+  {%- if data.category.seo_keyword -%}
+    <meta name="keywords" content="{{ data.category.seo_keyword }}" />
+  {%- endif -%}
+{%- endif -%}
+
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- comment -%} ################# BRAND ################## {%- endcomment -%}
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- if data.brand.name -%}
+  <meta property="og:title" content="{{ data.brand.name | default: ctx.url.path }} - {{ ctx.store.name }}" />
+  <meta property="og:description" content="{{ data.brand.description | default: data.brand.name | strip_html | truncate: 200 }}">
+  <meta name="description" content="{{ data.brand.description | default: data.brand.name | strip_html | truncate: 200 }}">
+{%- endif -%}
+
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- comment -%} ################ SEARCH ################## {%- endcomment -%}
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- if ctx.url.path contains 'search' or ctx.url.path contains 'buscar' and ctx.url.querystring.q -%}
+  <meta property="og:title" content="{{ ctx.url.querystring.q }} - {{ ctx.store.name }}" />
+{%- endif -%}
+
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- comment -%} ########## INSTITUTIONAL PAGE ############ {%- endcomment -%}
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- if data.institutional_page.title -%}
+  <meta property="og:title" content="{{ data.institutional_page.title }} - {{ ctx.store.name }}" />
+  <meta property="og:description" content="{{ data.institutional_page.content | strip_html | truncate: 200 }}">
+  <meta name="description" content="{{ data.institutional_page.content | strip_html | truncate: 200 }}">
+{%- endif -%}
+
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- comment -%} ################ PRODUCT ################# {%- endcomment -%}
+{%- comment -%} ########################################## {%- endcomment -%}
+{%- if data.product.name -%}
+  {%- assign not_seo_title = data.product.seo.title | is_empty -%}
+  <meta property="og:title" content="{%- if not_seo_title -%}{{ data.product.name }}{% else %}{{ data.product.seo.title }}{%- endif -%} - {{ ctx.store.name }}" />
+  {%- assign not_seo_description = data.product.seo.description | is_empty -%}
+  <meta property="og:description" content="{%- if not_seo_description -%}{{ data.product.summary }}{% else %}{{ data.product.seo.description }}{%- endif -%}" />
+  <meta name="description" content="{%- if not_seo_description -%}{{ data.product.summary }}{% else %}{{ data.product.seo.description }}{%- endif -%}" />
+  {%- assign not_seo_keyword = data.product.seo.keyword | is_empty -%}
+  {%- unless not_seo_keyword -%}
+    <meta name="keywords" content="{{ data.product.seo.keyword }}" />
+  {%- endunless -%}
+  {%- if data.product.images[0] -%}
+    <meta property="og:image" content="{{ ctx.static_domain }}/1000x1000{{ data.product.images[0].path }}" />
+  {%- endif -%}
+  <meta name="twitter:card" content="summary_large_image" />
+  {%- if data.store.social.twitter -%}
+    <meta name="twitter:site" content="@{{ data.store.social.twitter }}" />
+    <meta name="twitter:creator" content="@{{ data.store.social.twitter }}" />
+  {%- endif -%}
+  <meta name="twitter:title" content="{%- if not_seo_title -%}{{ data.product.name }}{% else %}{{ data.product.seo.title }}{%- endif -%}" />
+  <meta name="twitter:description" content="{%- if not_seo_description -%}{{ data.product.summary }}{% else %}{{ data.product.seo.description }}{%- endif -%}" />
+  {%- if data.product.images[0] -%}
+    <meta name="twitter:image" content="{{ ctx.static_domain }}/1000x1000{{ data.product.images[0].path }}" />
+  {%- endif -%}
+{%- endif -%}

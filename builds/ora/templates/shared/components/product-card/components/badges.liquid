@@ -1,0 +1,20 @@
+{% if product.available and product.price.upon_request == false %}
+  {%- assign discount_percentage = product.price.discount_percentage -%}
+{% endif %}
+{% comment %} Calculo de produto lançamento {% endcomment %}
+{%- assign now = 'now' | date: '%s' -%}
+{%- assign product_created_at = product.created_at | date: '%s' -%}
+{%- assign product_created_at = now | minus: product_created_at -%}
+{%- assign product_created_at = product_created_at | divided_by: 86400 | round: 0 -%}
+
+<div class="ora-card__tag">
+  {%- if discount_percentage > 0 -%}
+    <span class="ora-tag">-{{ discount_percentage | round: 0 }}%</span>
+  {%- endif -%}
+  {%- if product_created_at < 30 -%}
+    <span class="ora-tag">Lançamento</span>
+  {%- endif -%}
+  {%- if product.free_shipping -%}
+    <span class="ora-tag">Frete Grátis</span>
+  {%- endif -%}
+</div>

@@ -1,0 +1,35 @@
+{%- assign cat_item_class = 'flex items-center py-3 px-4 cursor-pointer group-hover:opacity-50 transition-all duration-300 categories-item-link' -%}
+
+<div class="hidden md:block w-full">
+  <div class="container px-0">
+    <ul class="flex flex-wrap items-center group">
+      {%- if data.categories.size > 0 -%}
+        {%- comment -%} Todas as categorias - Mega Menu {%- endcomment -%}
+        <li class="categories-item categories-item-mega">
+          <label for="mega-menu-toggle" tabindex="0" class="{{ cat_item_class }}" data-testid="li-megamenu-item">
+            <svg class="-ml-1 mr-1" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <mask id="mask0_26_1313" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+                <rect width="24" height="24" fill="#D9D9D9"/>
+              </mask>
+              <g mask="url(#mask0_26_1313)">
+                <path d="M4 15V13H20V15H4ZM4 11V9H20V11H4Z" fill="currentColor"/>
+              </g>
+            </svg>
+            Todas as categorias
+          </label>
+          {% render 'shared/components/header/components/menu/menu-mega' %}
+        </li>
+      {%- endif -%}
+
+      {%- comment -%} Categorias individuais - Dropdown padrão {%- endcomment -%}
+      {%- for category in data.categories -%}
+        <li class="categories-item relative">
+          <a href="{{ category.path }}" tabindex="0" class="{{ cat_item_class }}" data-testid="li-menu-item">{{ category.name }}</a>
+          {%- if category.children.size > 0 -%}
+            {% render 'shared/components/header/components/menu/menu-dropdown', categories: category.children, position: 'top', show_children: true %}
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</div>

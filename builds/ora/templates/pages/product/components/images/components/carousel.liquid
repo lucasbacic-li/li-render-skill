@@ -1,0 +1,178 @@
+{%- comment -%}
+  Carousel de imagens do produto
+  Inclui: imagens + vídeo + botão de zoom + dots de navegação
+  Usa: data.product
+{%- endcomment -%}
+
+{% assign product_images = data.product.images %}
+
+<carousel-embla 
+  class="product-images-carousel"
+  data-slides-per-view="1"
+  data-loop="false"
+  data-show-progress="true"
+  data-autoplay="false"
+>
+  <div class="embla">
+    <div class="embla__container flex">
+      {% for image in product_images %}
+        {% render 'pages/product/components/images/components/image', image: image, forloop: forloop %}
+      {% else %}
+        {% render 'pages/product/components/images/components/image' %}
+      {% endfor %}
+      
+      {% if data.product.media.youtube %}
+        {% assign video_url = data.product.media.youtube %}
+        {% assign video_id = video_url | split: '/' | last %}
+        {% assign video_id = video_id | split: '?' | last %}
+        {% assign video_id = video_id | split: 'v=' | last %}
+        {% if video_id != blank %}
+          {% assign video_thumbnail_url = 'https://img.youtube.com/vi/' | append: video_id %}
+          <div class="embla__slide">
+            <div class="relative w-full aspect-square bg-base-200 rounded-box overflow-hidden">
+              <a
+                href="{{ data.product.media.youtube }}"
+                target="_blank"
+                class="absolute inset-0 z-10 flex items-center justify-center"
+                title="Assistir vídeo"
+                data-videoid="{{ video_id }}"
+                data-video-button
+              >
+                <svg class="fill-current size-16 text-red-600" role="img" aria-hidden="true">
+                  <use xlink:href="/static/img/fontawesome-brands.svg#youtube" href="/static/img/fontawesome-brands.svg#youtube"></use>
+                </svg>
+              </a>
+              <img
+                src="{{ video_thumbnail_url }}/maxresdefault.jpg"
+                alt="{{ data.product.media.youtube.title | default: 'Vídeo do produto' }}"
+                width="800"
+                height="800"
+                class="block w-full h-full object-cover object-center contrast-75"
+                loading="lazy"
+              />
+              <dialog id="prod_video_{{ video_id }}" class="modal group">
+                <div class="modal-box m-5 p-0 h-auto w-auto max-h-auto max-w-none bg-transparent">
+                  <iframe
+                    class="w-screen h-screen max-w-full max-h-[90vh] select-none hidden group-open:block"
+                    data-video-src="https://www.youtube.com/embed/{{ video_id }}?autoplay=1&rel=0&showinfo=0&modestbranding=1&controls=2"
+                    frameborder="0"
+                    loading="lazy"
+                    allowfullscreen
+                    credentialless
+                  ></iframe>
+                  <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-soft absolute right-1 top-1">✕</button>
+                  </form>
+                </div>
+                <form method="dialog" class="modal-backdrop">
+                  <button>Fechar</button>
+                </form>
+              </dialog>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- Progress dots -->
+  {% if product_images.size > 1 or data.product.media.youtube %}
+    <div class="flex justify-center mt-4">
+      {% for image in product_images %}
+        <button
+          data-carousel-dot
+          class="group p-2"
+          aria-label="Ir para imagem {{ forloop.index }}"
+        >
+          <span class="block size-2.5 rounded-full bg-base-300 transition-colors group-aria-current:bg-primary"></span>
+        </button>
+      {% endfor %}
+      {% if data.product.media.youtube %}
+        <button 
+          data-carousel-dot 
+          class="group p-2"
+          aria-label="Ir para vídeo"
+        >
+          <span class="block size-2.5 rounded-full bg-base-300 transition-colors group-aria-current:bg-primary"></span>        
+        </button>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  {% if product_images.size > 0 %}
+    <!-- Botão de Zoom (fixo no canto) -->
+    <button 
+      type="button" 
+      class="btn btn-circle absolute top-2.5 left-2.5 z-10 p-0 bg-base-100"
+      onclick="document.getElementById('product-zoom-drawer').open()"
+      aria-label="Ampliar imagem do produto"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <mask id="mask0_541_5564" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+        <rect width="20" height="20" fill="#D9D9D9"/>
+        </mask>
+        <g mask="url(#mask0_541_5564)">
+          <path d="M16.3333 17.5L11.0833 12.25C10.6667 12.5833 10.1875 12.8472 9.64583 13.0417C9.10417 13.2361 8.52778 13.3333 7.91667 13.3333C6.40278 13.3333 5.12153 12.809 4.07292 11.7604C3.02431 10.7118 2.5 9.43056 2.5 7.91667C2.5 6.40278 3.02431 5.12153 4.07292 4.07292C5.12153 3.02431 6.40278 2.5 7.91667 2.5C9.43056 2.5 10.7118 3.02431 11.7604 4.07292C12.809 5.12153 13.3333 6.40278 13.3333 7.91667C13.3333 8.52778 13.2361 9.10417 13.0417 9.64583C12.8472 10.1875 12.5833 10.6667 12.25 11.0833L17.5 16.3333L16.3333 17.5ZM7.91667 11.6667C8.95833 11.6667 9.84375 11.3021 10.5729 10.5729C11.3021 9.84375 11.6667 8.95833 11.6667 7.91667C11.6667 6.875 11.3021 5.98958 10.5729 5.26042C9.84375 4.53125 8.95833 4.16667 7.91667 4.16667C6.875 4.16667 5.98958 4.53125 5.26042 5.26042C4.53125 5.98958 4.16667 6.875 4.16667 7.91667C4.16667 8.95833 4.53125 9.84375 5.26042 10.5729C5.98958 11.3021 6.875 11.6667 7.91667 11.6667ZM7.08333 10.4167V8.75H5.41667V7.08333H7.08333V5.41667H8.75V7.08333H10.4167V8.75H8.75V10.4167H7.08333Z" fill="currentColor"/>
+        </g>
+      </svg>
+    </button>
+  {% endif %}
+</carousel-embla>
+
+<script type="module">
+  // Handle video modal
+  document.addEventListener('DOMContentLoaded', () => {
+    const videoButtons = document.querySelectorAll('[data-video-button]');
+    
+    videoButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const videoId = button.dataset.videoid;
+        const modal = document.getElementById(`prod_video_${videoId}`);
+        const iframe = modal?.querySelector('iframe');
+        
+        if (modal && iframe) {
+          const videoSrc = iframe.dataset.videoSrc;
+          if (videoSrc) {
+            iframe.src = videoSrc;
+          }
+          modal.showModal();
+        }
+      });
+    });
+    
+    // Clean up iframe src on modal close
+    const videoModals = document.querySelectorAll('dialog[id^="prod_video_"]');
+    videoModals.forEach(modal => {
+      modal.addEventListener('close', () => {
+        const iframe = modal.querySelector('iframe');
+        if (iframe) {
+          iframe.src = '';
+        }
+      });
+    });
+  });
+
+  // Listen for SKU image selection event
+  window.addEventListener('li:set-selected-image-by-id', (event) => {
+    const imageId = event.detail?.id;
+    if (!imageId) return;
+    
+    const carousel = document.querySelector('.product-images-carousel');
+    if (!carousel) return;
+    
+    const slides = carousel.querySelectorAll('.embla__slide[data-image-id]');
+    let targetIndex = -1;
+    
+    slides.forEach((slide, index) => {
+      if (slide.dataset.imageId === String(imageId)) {
+        targetIndex = index;
+      }
+    });
+    
+    if (targetIndex >= 0 && carousel.emblaApi) {
+      carousel.emblaApi.goTo(targetIndex);
+    }
+  });
+</script>
+

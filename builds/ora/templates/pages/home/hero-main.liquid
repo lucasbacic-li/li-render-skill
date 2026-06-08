@@ -1,0 +1,85 @@
+{%- comment -%}
+  Hero editorial (banner custom da Ora) — transição FADE + navegação por títulos.
+  Card de produto (o MESMO da vitrine) flutua sobre a foto editorial sangrada.
+
+  Animação: crossfade entre slides (controlador <ora-hero> em ora-hero.webc.js;
+  fade não combina com o modelo de slide do Embla, daí o controlador dedicado).
+
+  Navegação (ref. Paper): lista de títulos no canto inferior esquerdo; a baseline
+  de cada título é uma PROGRESS BAR (.ora-hero__navfill) que enche até o slide
+  trocar. Clicar num título navega. No mobile a lista vira segmentos que expandem.
+
+  Dados (declarados no pages/index.json):
+  - props.slides  → [{ title, image, product_id }] : define os slides (ordem +
+                    título + foto editorial (asset de marca) + produto).
+  - data.hero_p0… → get_products com filter.product_ids de UM id (string), 1 por slot.
+{%- endcomment -%}
+
+{%- assign slides = props.slides -%}
+
+{%- if slides.size > 0 -%}
+<section class="ora-hero">
+  <ora-hero data-delay="7000" class="ora-hero__carousel">
+
+    <div class="ora-hero__stage">
+      {%- for slide in slides -%}
+        {%- assign i = forloop.index0 -%}
+        <div class="ora-hero__slide{% if forloop.first %} is-current{% endif %}">
+
+          <picture class="ora-hero__picture">
+            {%- comment -%} theme_assets não suportam resize /WxH/ (404) — usa o asset cru {%- endcomment -%}
+            <img
+              class="ora-hero__photo"
+              src="{% asset_url slide.image %}"
+              alt="{{ slide.title }}"
+              loading="eager"
+              {% if forloop.first %}fetchpriority="high"{% endif %}
+            />
+          </picture>
+          <div class="ora-hero__scrim" aria-hidden="true"></div>
+
+          {%- comment -%} card de produto do slot (uma data function por slide) {%- endcomment -%}
+          {%- assign hero_key = 'hero_p' | append: i -%}
+          {%- assign hero_product = data[hero_key].products[0] -%}
+          {%- if hero_product -%}
+            <aside class="ora-hero__peek">
+              {% render 'shared/components/product-card/index', product: hero_product, forloop: forloop %}
+            </aside>
+          {%- endif -%}
+
+        </div>
+      {%- endfor -%}
+    </div>
+
+    {%- comment -%}
+      Navegação (controlada pelo <ora-hero>):
+      - Desktop: .ora-hero__rows = lista vertical de títulos (baseline = progress bar).
+      - Mobile: .ora-hero__mbar (título ativo à esquerda + botão "+" p/ o produto) no
+        topo, e as linhas viram a faixa de segmentos abaixo. O controlador atualiza o
+        título e o href do "+" a cada slide.
+    {%- endcomment -%}
+    <div class="ora-hero__nav">
+
+      {%- comment -%} barra mobile: título do slide ativo + "+" p/ o link do produto {%- endcomment -%}
+      <div class="ora-hero__mbar" aria-hidden="true">
+        <span class="ora-hero__mtitle"></span>
+        <a class="ora-hero__madd" href="" aria-label="Ver produto" hidden>
+          <span class="material-symbols-sharp" aria-hidden="true">add</span>
+        </a>
+      </div>
+
+      <div class="ora-hero__rows">
+        {%- for slide in slides -%}
+          <button type="button" class="ora-hero__navrow{% if forloop.first %} is-active{% endif %}" aria-label="Ir para {{ slide.title }}">
+            <span class="ora-hero__navtrack" aria-hidden="true"><span class="ora-hero__navfill"></span></span>
+            <span class="ora-hero__navnum">{{ forloop.index }}</span>
+            <span class="ora-hero__navtitle">{{ slide.title }}</span>
+          </button>
+        {%- endfor -%}
+      </div>
+    </div>
+
+  </ora-hero>
+</section>
+{%- endif -%}
+

@@ -1,0 +1,90 @@
+{% assign buy_together = data.buy_together %}
+{% if buy_together and buy_together.products.size > 1 %}
+  {% if props.in_page_placement == null or buy_together.position_in_page == props.in_page_placement %}
+    {%- if ctx.url.querystring.buy_together_id and ctx.url.querystring.buy_together_id != buy_together.id -%}
+      <script type="text/javascript" id="toast-trigger" hx-swap-oob="true">
+        if (typeof window.toast === 'function') {
+          window.toast('Compre junto alterado. Verifique antes de continuar', {type: 'info'});
+        };
+      </script>
+    {%- endif -%}
+    {%- assign buy_together_string_id = 'product-buytogether-' | append: buy_together.id -%}
+    {%- if buy_together.layout == 'list' -%}
+      {%- assign is_layout_list = true -%}
+    {%- endif -%}
+    <buy-together-form
+      data-buy-together-id="{{ buy_together.id }}"
+      data-selected-skus="{{ buy_together.selected_skus | join: ',' }}"
+      data-form-id="{{ buy_together_string_id }}"
+      data-metrics="view_buy_together"
+      data-mt-title="{{ buy_together.title | default: 'Compre junto' }}"
+    >
+      <form
+        method="get"
+        id="{{ buy_together_string_id }}"
+        class="pt-5 pb-10 md:pt-10 content-auto-[300px]"
+        hx-get="/partial/product/buytogether"
+        hx-trigger="update-selected-skus"
+        hx-params="buy_together_id,seed,current_product,selected_skus"
+        hx-swap="outerHTML"
+        hx-target="closest buy-together-form"
+        hx-select="buy-together-form"
+        hx-disabled-elt="input[type='checkbox'], input[type='radio'], select, button, a"
+        hx-indicator=".{{ buy_together_string_id }}-add"
+      >
+        <input type="hidden" name="buy_together_id" value="{{ buy_together.id }}" />
+        <input type="hidden" name="seed" value="{{ buy_together.seed }}" />
+        <input type="hidden" name="current_product" value="{{ buy_together.products[0].product.id }}" />
+        <input type="hidden" name="selected_skus" value="{{ buy_together.selected_skus | join: ',' }}" />
+        <h2>{{ buy_together.title | default: 'Compre junto' | capitalize }}</h2>
+        <div class="flex flex-wrap justify-center gap-10 mt-5 {% if is_layout_list %}flex-col md:flex-row{% endif %}">
+          {% render 'pages/product/components/buy-together/product-card', buy_together_string_id: buy_together_string_id, item: buy_together.products[0], is_first: true, is_layout_list: is_layout_list %}
+          <div class="flex-1 overflow-x-auto scrollbar-thin flex gap-10 {% if is_layout_list %}flex-col md:min-w-60{% else %}md:min-w-56{% endif %}">
+            {% for item in buy_together.products %}
+              {% if forloop.first %}
+                {% continue %}
+              {% endif %}
+              {% render 'pages/product/components/buy-together/product-card', buy_together_string_id: buy_together_string_id, item: item, is_last: forloop.last, is_layout_list: is_layout_list %}
+            {% endfor %}
+          </div>
+          <div class="shrink-0 p-5 w-full xl:w-52 bg-base-100 rounded-box flex flex-col items-center justify-center gap-2 text-center">
+            {% if buy_together.price.discount_value > 0 %}
+              <div class="badge badge-success" data-testid="li-buytogether-discount">
+                Desconto de {% if buy_together.price.discount_type == 'percentage' %}{{ buy_together.price.discount_value | round }}%{% else %}{{ buy_together.price.discount_value }}{% endif %}
+              </div>
+            {% endif %}
+            <p class="text-base font-medium">
+              Compre {% if buy_together.selected_skus.size > 1 %}os {% endif %}{{ buy_together.selected_skus.size }} {{ buy_together.selected_skus.size | pluralize: 'item', 'itens' }}
+            </p>
+            <p class="flex flex-col">
+              {% if buy_together.price.base_price and buy_together.price.base_price > buy_together.price.selling_price %}
+                <span class="text-base-content/70 font-normal text-sm"><span class="line-through" data-testid="li-buytogether-price-base">{{ buy_together.price.base_price | format_number: "C" }}</span></span>
+              {% endif %}
+              <strong class="font-medium text-lg text-primary" data-testid="li-buytogether-price-selling">{{ buy_together.price.selling_price | format_number: "C" }}</strong>
+            </p>
+            <div class="mt-1 w-full">
+              <a
+                href="/carrinho/produto/adicionar?origin=buy-together&{{ buy_together.selected_skus | join: "=1&" }}=1"
+                class="{{ buy_together_string_id }}-add group relative btn btn-primary btn-lg btn-block [&.htmx-request]:btn-disabled"
+                data-id="li-buytogether-buy-btn"
+                data-testid="li-buytogether-buy"
+              >
+                <span class="group-[.htmx-request]:opacity-0">
+                  {{ buy_together.button_buy_text | default: 'Comprar' }}
+                </span>
+                <span class="hidden group-[.htmx-request]:flex absolute inset-0 items-center justify-center">
+                  <svg class="fill-current size-4 -mb-px animate-spin" role="img" aria-hidden="true">
+                    <use xlink:href="/static/img/fontawesome-solid.svg#spinner" href="/static/img/fontawesome-solid.svg#spinner"></use>
+                  </svg>
+                </span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </form>
+    </buy-together-form>
+
+    <script defer src="{% asset_url '/scripts/buy-together-form.js' %}"></script>
+    <script defer src="{% asset_url '/scripts/buy-together-product.js' %}"></script>
+  {% endif %}
+{% endif %}

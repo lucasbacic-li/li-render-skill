@@ -1,0 +1,13 @@
+{
+  "$schema": "https://cdn.awsli.com.br/public/render/schema/v1.json",
+  "partial": {
+    "path": "/partial/newsletter/subscribe",
+    "components": [
+      {
+        "type": "template",
+        "template": "shared/components/newsletter/bar.liquid"
+      }
+    ]
+  },
+  "_version": "3"
+}

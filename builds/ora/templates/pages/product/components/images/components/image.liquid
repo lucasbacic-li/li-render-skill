@@ -1,0 +1,29 @@
+{%- assign image_path = image.path | default: '/0/0/common/product-no-image.gif' -%}
+<div class="embla__slide min-w-0 flex-none w-full" data-image-id="{{ image.id | default: '0' }}">
+  <div class="relative w-full">
+    <img 
+      src="{{ ctx.static_domain }}/800x1000{{ image_path }}"
+      alt="{{ image.alt | default: data.product.name }}"
+      width="800"
+      height="500"
+      srcset="{{ ctx.static_domain }}/350x500{{ image_path }} 350w,
+              {{ ctx.static_domain }}/450x600{{ image_path }} 450w,
+              {{ ctx.static_domain }}/550x700{{ image_path }} 550w,
+              {{ ctx.static_domain }}/650x800{{ image_path }} 650w,
+              {{ ctx.static_domain }}/750x900{{ image_path }} 750w,
+              {{ ctx.static_domain }}/800x1000{{ image_path }} 800w"
+      sizes="(max-width: 768px) 100vw,
+              (max-width: 1024px) 60vw,
+              (max-width: 1280px) 80vw,
+              800px"
+      class="block w-full h-full object-cover object-center rounded-box overflow-hidden"
+      data-testid="li-product-image"
+      {% if forloop.first %}
+        loading="eager"
+        fetchpriority="high"
+      {% else %}
+        loading="lazy"
+      {% endif %}
+    />
+  </div>
+</div>

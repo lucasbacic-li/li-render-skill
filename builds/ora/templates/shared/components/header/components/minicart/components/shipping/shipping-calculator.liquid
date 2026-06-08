@@ -1,0 +1,30 @@
+<bottom-sheet-dialog class="bottom-sheet active">
+  <div 
+    class="bottom-sheet-overlay bottom-sheet-close"
+  ></div>
+  
+  <div class="bottom-sheet-content">
+    <div class="ora-drawer-head">
+      <span class="ora-drawer-head__title ora-sheet-title">Calcular frete</span>
+      <button type="button" class="ora-drawer-head__close bottom-sheet-close" aria-label="Fechar">
+        <span class="material-symbols-sharp" aria-hidden="true">close</span>
+      </button>
+    </div>
+    <div id="freight-calculator-container" class="p-6 flex flex-col gap-2.5">
+      <form
+        id="minicart-zipcode-form"
+        class="flex flex-col gap-4"
+        hx-post="{{ routes.cart_zipcode }}"
+        hx-target="#minicart-shipping-calculation"
+        hx-swap="outerHTML"
+        hx-disabled-elt="find button, find input"
+      >
+        {% render 'shared/components/header/components/minicart/components/shipping/shipping-result', with_session: with_session %}
+      </form>
+    </div>
+  </div>
+</bottom-sheet-dialog>
+
+<script defer src="{% asset_url '/scripts/bottom-sheet-dialog.webc.js' %}"></script>
+
+{%- comment -%}ora-sync{%- endcomment -%}

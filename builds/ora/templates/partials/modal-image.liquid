@@ -1,0 +1,11 @@
+<dialog id="{{ modal_id }}" class="modal group">
+  <div class="modal-box m-5 p-0 h-auto w-auto max-h-auto max-w-none bg-transparent">
+    <img class="max-w-full max-h-[90vh] select-none hidden group-open:block" src="{{ modal_image }}" alt="{{ modal_image_alt }}" loading="lazy" />
+    <form method="dialog">
+      <button class="btn btn-sm btn-circle btn-soft ora-btn-icon absolute right-1 top-1">✕</button>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>Fechar</button>
+  </form>
+</dialog>

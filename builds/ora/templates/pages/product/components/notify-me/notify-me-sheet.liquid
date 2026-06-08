@@ -1,0 +1,77 @@
+{% assign product_id = ctx.url.querystring.product_id | default: product_id %}
+
+<bottom-sheet-dialog class="bottom-sheet active">
+  <div 
+    class="bottom-sheet-overlay bottom-sheet-close"
+  ></div>
+  
+  <div class="bottom-sheet-content bottom-sheet-content-dialog">
+    <div id="notify-me-container" class="p-6 bg-base-100 flex flex-col gap-6">
+      <form
+        id="notify-me-form"
+        method="post"
+        hx-post="{{ routes.catalog_product_notifyme | replace: '{product_id}', product_id }}"
+        hx-target="#notify-me-form-result"
+        hx-swap="innerHTML"
+        hx-disabled-elt="find button, find input"
+        class="flex flex-col gap-4"
+      >
+        <div class="flex flex-col">
+          <div class="flex items-center justify-between">
+            <h3 class="ora-sheet-title" data-testid="li-unavailable-title">Avise-me</h3>
+            <button 
+              type="button"
+              class="bottom-sheet-close"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <mask id="mask0_coupon_close" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+                <rect width="20" height="20" fill="#D9D9D9"/>
+                </mask>
+                <g mask="url(#mask0_coupon_close)">
+                <path d="M5.33317 15.8334L4.1665 14.6667L8.83317 10.0001L4.1665 5.33341L5.33317 4.16675L9.99984 8.83341L14.6665 4.16675L15.8332 5.33341L11.1665 10.0001L15.8332 14.6667L14.6665 15.8334L9.99984 11.1667L5.33317 15.8334Z" fill="currentColor"/>
+                </g>
+              </svg>
+            </button>
+          </div>
+          <span class="text-base leading-6 text-base-content" data-testid="li-unavailable-subtitle">
+            Deixe seu e-mail que avisaremos assim que o produto estiver disponível.
+          </span>
+        </div>
+        <div id="notify-me-form-result" class="flex flex-col gap-4">
+          <div class="flex-1">
+            <label for="notify-me-name" class="sr-only">Nome</label>
+            <input
+              id="notify-me-name"
+              name="name"
+              type="text"
+              autocomplete="name"
+              required
+              class="input input-md input-bordered w-full"
+              placeholder="Digite seu nome"
+              data-testid="li-unavailable-name"
+            />
+          </div>
+          <div class="flex-1">
+            <label for="notify-me-email-address" class="sr-only">E-mail</label>
+            <input
+              id="notify-me-email-address"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+              class="input input-md input-bordered w-full"
+              placeholder="Digite seu e-mail"
+              data-testid="li-unavailable-email"
+            />
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-md btn-primary btn-block" data-testid="li-unavailable-submit">
+          Avise-me
+        </button>
+      </form>
+    </div>
+  </div>
+</bottom-sheet-dialog>
+
+<script defer src="{% asset_url '/scripts/bottom-sheet-dialog.webc.js' %}"></script>

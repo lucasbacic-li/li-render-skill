@@ -1,0 +1,91 @@
+<li class="ora-mc-item" data-testid="li-minicart-item">
+  <div class="ora-mc-item__thumb">
+    <img src="{{ ctx.static_domain }}/200x200/{{ item.images[0].path | default: '0/0/common/product-no-image.gif' }}" alt="{{ item.name }}" loading="lazy" />
+  </div>
+  <div class="ora-mc-item__info">
+    {% unless readonly %}
+      <a href="{{ item.url }}" class="ora-mc-item__name" data-testid="li-minicart-item-name">{{ item.name }}</a>
+    {% else %}
+      <span class="ora-mc-item__name">{{ item.name }}</span>
+    {% endunless %}
+
+    {% for variation in item.variation_types %}
+      <p class="text-xs font-light text-base-content/70">
+        {% if variation.id == '8948' or variation.id == '8945' %}Cor:{% else %}{{ variation.name }}:{% endif %}
+        <span class="font-semibold">
+          {% for option in variation.variations %}
+            {% if option.color %}
+              <span class="inline-block align-middle size-0 border-0 border-b-20 border-l-20" style="border-color: {{ option.color }} {{ option.secondary_color | default: option.color }};" title="{{ option.name }}"></span>
+            {% else %}
+              {{ option.name }}
+            {% endif %}
+            {% unless forloop.last %}, {% endunless %}
+          {% endfor %}
+        </span>
+      </p>
+    {% endfor %}
+
+    {% unless readonly %}
+      <p class="ora-mc-item__price">{{ item.price.selling_price | times: item.quantity | format_number: "C" }}</p>
+    {% endunless %}
+
+    <div class="ora-mc-item__actions">
+      {%- assign cart_item_qtd_form = 'cart-item-quantity-' | append: item.id -%}
+      {%- assign cart_item_qtd_id = 'cart-item-quantity-input-' | append: item.id -%}
+      {% unless readonly %}
+        <form
+          method="POST"
+          class="ora-mc-qty"
+          id="{{ cart_item_qtd_form }}"
+          onsubmit="return false;"
+          hx-post="{{ routes.cart_item }}/{{ item.id }}/update"
+          hx-swap="none"
+          hx-trigger="submit"
+          hx-on::after-request="var thisEl = document.getElementById('{{ cart_item_qtd_form }}'); thisEl.innerHTML = thisEl.innerHTML"
+          hx-indicator="#spinner-{{ item.id }}"
+          hx-disabled-elt="button, input"
+          hx-sync="this:abort"
+        >
+          <button type="button" class="ora-mc-qty__btn"
+            onclick="const i=document.getElementById('{{ cart_item_qtd_id }}'); i.value=Math.max(1, i.value-1); i.dispatchEvent(new Event('change'));"
+            data-testid="li-minicart-item-decrease-quantity">
+            <span class="sr-only">Diminuir quantidade</span>
+            <span class="material-symbols-sharp" style="font-size:20px" aria-hidden="true">remove</span>
+          </button>
+          <input
+            id="{{ cart_item_qtd_id }}"
+            class="ora-mc-qty__input validator"
+            value="{{ item.quantity }}"
+            name="quantity" type="number" min="1" max="1110" pattern="[0-9]*" autocomplete="off" step="1" required
+            oninput="if (this.value < 1 || isNaN(this.value)) { this.value = 1; } clearTimeout(this.debounceTimer); this.debounceTimer = setTimeout(() => { this.dispatchEvent(new Event('change')); }, 5000);"
+            onchange="this.setAttribute('value', Math.max(1, Math.min(this.value, 1110))); htmx.trigger('#{{ cart_item_qtd_form }}', 'submit');"
+            onkeydown="if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); clearTimeout(this.debounceTimer); this.blur(); }"
+            onfocus="this.select()"
+          >
+          <button type="button" class="ora-mc-qty__btn"
+            onclick="const i=document.getElementById('{{ cart_item_qtd_id }}'); i.value++; i.dispatchEvent(new Event('change'));"
+            data-testid="li-minicart-item-increase-quantity">
+            <span class="sr-only">Aumentar quantidade</span>
+            <span class="material-symbols-sharp" style="font-size:20px" aria-hidden="true">add</span>
+          </button>
+        </form>
+
+        <button type="button" id="btn-remove-from-cart" class="ora-mc-remove relative"
+          hx-swap="none"
+          hx-post="{{ routes.cart_item }}/{{ item.id }}/remove"
+          hx-indicator="#spinner-{{ item.id }}"
+          hx-disabled-elt="button, input"
+          data-testid="li-minicart-item-remove">
+          Remover
+          <span id="spinner-{{ item.id }}" class="htmx-indicator opacity-0 absolute top-0 left-0">
+            <svg class="fill-current size-4 animate-spin" role="img" aria-hidden="true">
+              <use xlink:href="/static/img/fontawesome-solid.svg#spinner" href="/static/img/fontawesome-solid.svg#spinner"></use>
+            </svg>
+          </span>
+        </button>
+      {% else %}
+        <span class="badge badge-sm badge-soft badge-success">Brinde</span>
+      {% endunless %}
+    </div>
+  </div>
+</li>

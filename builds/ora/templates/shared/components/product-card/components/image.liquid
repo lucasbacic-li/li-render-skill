@@ -1,0 +1,30 @@
+<img
+  src="{{ img_url_prefix }}{{ img_url }}"
+  srcset="
+    {{ ctx.static_domain }}/200x{{ img_height }}{{ img_url }} 200w,
+    {{ ctx.static_domain }}/300x{{ img_height }}{{ img_url }} 300w,
+    {{ ctx.static_domain }}/400x{{ img_height }}{{ img_url }} 400w,
+    {{ ctx.static_domain }}/500x{{ img_height }}{{ img_url }} 500w,
+    {{ ctx.static_domain }}/600x{{ img_height }}{{ img_url }} 600w,
+    {{ ctx.static_domain }}/700x{{ img_height }}{{ img_url }} 700w"
+  data-id="product-image"
+  alt="{{ product.name }}"
+  class="ora-card__photo ora-card__photo--primary{% if product.preview_images.size > 1 %} ora-card__photo--swap{% endif %}"
+  width="{{ img_height }}"
+  height="{{ img_height }}"
+  loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+  {% if forloop.first %}fetchpriority="high"{% endif %}
+/>
+{%- if product.preview_images.size > 1 -%}
+  {%- assign img_url_hover = product.preview_images[1] -%}
+  <img
+    src="{{ img_url_prefix }}{{ img_url_hover }}"
+    srcset="{{ ctx.static_domain }}/300x{{ img_height }}{{ img_url_hover }} 300w, {{ ctx.static_domain }}/500x{{ img_height }}{{ img_url_hover }} 500w, {{ ctx.static_domain }}/700x{{ img_height }}{{ img_url_hover }} 700w"
+    alt=""
+    aria-hidden="true"
+    class="ora-card__photo ora-card__photo--hover"
+    width="{{ img_height }}"
+    height="{{ img_height }}"
+    loading="lazy"
+  />
+{%- endif -%}

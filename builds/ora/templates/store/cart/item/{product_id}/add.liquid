@@ -1,0 +1,8 @@
+<script type="text/javascript" id="toast-trigger" hx-swap-oob="true">
+  if (typeof window.toast === 'function') window.toast('Produto adicionado ao carrinho', {type: 'success'});
+  try {
+    window.dispatchEvent(new Event('open-minicart'));
+  } catch (error) { }
+</script>
+
+{% render 'shared/utils/cart-message' %}

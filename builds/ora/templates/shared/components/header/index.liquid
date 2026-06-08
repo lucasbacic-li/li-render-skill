@@ -1,0 +1,50 @@
+<div class="ora-header">
+  <div class="container ora-header__row">
+    {%- comment -%} Esquerda: categorias (desktop). Marca tem poucas categorias → nav simples. {%- endcomment -%}
+    <nav class="ora-header__nav" aria-label="Categorias">
+      {%- for category in data.categories -%}
+        <div class="ora-navitem{% if category.children.size > 0 %} ora-navitem--has-children{% endif %}">
+          <a href="{{ category.path }}" class="ora-navlink ora-link-mark" data-testid="li-header-category">{{ category.name }}</a>
+          {%- if category.children.size > 0 -%}
+            <div class="ora-subnav">
+              {%- for child in category.children -%}
+                <a href="{{ child.path }}" class="ora-sublink ora-link-mark">{{ child.name }}</a>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </nav>
+
+    {%- comment -%} Centro: logotipo {%- endcomment -%}
+    {%- if ctx.url.path == '/' -%}<h1 class="ora-header__brand">{%- else -%}<div class="ora-header__brand">{%- endif -%}
+      <a href="{{ routes.root }}" class="block" data-testid="li-header-logo">
+        {%- if ctx.store.logo or layout_attributes.render.logo_preview -%}
+          <img class="ora-header__logo" src="{{ layout_attributes.render.logo_preview | default: ctx.store.logo }}" alt="{{ ctx.store.name }}" width="180" height="67" loading="eager" fetchpriority="high">
+        {%- else -%}
+          <img class="ora-header__logo" src="{% asset_url 'brand/logo-horizontal.svg' %}" alt="{{ ctx.store.name }}" width="242" height="64" loading="eager" fetchpriority="high">
+        {%- endif -%}
+      </a>
+    {%- if ctx.url.path == '/' -%}</h1>{%- else -%}</div>{%- endif -%}
+
+    {%- comment -%} Direita: utilidades (gatilhos de texto → drawers existentes) {%- endcomment -%}
+    <div class="ora-header__utils">
+      <label for="search-drawer-toggle" class="ora-utillink ora-link-mark" aria-label="Buscar" tabindex="0" role="button">Buscar</label>
+      <a href="/conta/index" class="ora-utillink ora-link-mark" data-testid="li-header-account">Conta</a>
+      <label for="header-minicart-drawer-toggle" class="ora-utillink ora-link-mark" aria-label="Abrir carrinho" tabindex="0" role="button" data-testid="li-header-cart">Sacola&nbsp;(<span class="header-minicart-totalitems">{{ data.cart.items.size | default: 0 }}</span>)</label>
+    </div>
+  </div>
+</div>
+
+{%- comment -%} Sobre o hero, o menu começa transparente e vira sólido ao rolar. {%- endcomment -%}
+<script>
+  (function () {
+    var bar = document.querySelector('.ora-headbar--over-hero');
+    if (!bar) return;
+    var onScroll = function () {
+      bar.classList.toggle('ora-headbar--solid', window.scrollY > window.innerHeight * 0.7);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>

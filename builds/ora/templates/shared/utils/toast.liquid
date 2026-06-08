@@ -1,0 +1,20 @@
+<toast-component>
+  {% comment %} [&:not(:hover)]:stack {% endcomment %}
+  <section class="toast toast-top toast-center z-99999 md:max-w-1/2 "></section>
+  <template class="toast-item">
+    <output role="status" class="alert opacity-0 -translate-y-2 transition-all">
+      <svg class="size-5 shrink-0 fill-current" role="img" aria-hidden="true">
+        <use xlink:href="/static/img/fontawesome-solid.svg#circle-info" data-id="icon"></use>
+      </svg>
+      <span data-id="message" class="pr-7"></span>
+      <button type="button" data-id="close" class="btn btn-ghost btn-sm btn-circle absolute top-0.5 right-0.5" title="Fechar">
+        <svg class="size-3 fill-current" role="img" aria-hidden="true">
+          <use xlink:href="/static/img/fontawesome-solid.svg#xmark" href="/static/img/fontawesome-solid.svg#xmark"></use>
+        </svg>
+      </button>
+    </output>
+  </template>
+  <script type="module" id="toast-trigger"></script>
+</toast-component>
+
+<script defer src="{% asset_url '/scripts/toast-component.webc.js' %}"></script>

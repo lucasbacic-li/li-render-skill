@@ -1,0 +1,9 @@
+{% if data.suggestion_products.products.size > 0 %}
+  <div id="minicart_product_suggestion" class="grid grid-cols-2 gap-6 mx-auto px-6">
+    {%- assign img_height = '170' -%}
+    {%- assign img_width = img_height | times: 2 -%}
+    {% for product in data.suggestion_products.products %}
+      {% render 'shared/components/product-card/index', product: product, forloop: forloop, img_width: img_width, img_height: img_height %}
+    {% endfor %}
+  </div>
+{% endif %}

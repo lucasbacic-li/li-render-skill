@@ -1,0 +1,64 @@
+{% unless data.cart.marketing.cupom and data.cart.marketing.cupom.cumulative == false %}
+  {% if data.cart_offers_conditions.progressive_discount %}
+    {%- assign progressive_discount = data.cart_offers_conditions.progressive_discount %}
+    {%- assign progressive_discount_next_step_index = progressive_discount.steps | find_index: "discount", progressive_discount.selected_step.discount | default: -1 | plus: 1 %}
+    {%- assign progressive_discount_next_step = progressive_discount.steps[progressive_discount_next_step_index] %}
+    {%- assign progressive_discount_last_step = progressive_discount.steps | last %}
+    <div role="alert" class="alert alert-success bg-success/10 mx-3 flex flex-col gap-2.5">
+      <p class="block text-base-content text-sm font-medium leading-5">Desconto progressivo</p>
+      {%- if progressive_discount_last_step.price -%}
+        {%- assign range_current = progressive_discount.total_value | default: 0 | replace: ",", "." -%}
+        {%- assign range_max = progressive_discount_last_step.price.min | default: 0 | replace: ",", "." -%}
+      {%- endif -%}
+      {%- if progressive_discount_last_step.number_of_items -%}
+        {%- assign range_current = progressive_discount.total_quantity | default: 0 | replace: ",", "." -%}
+        {%- assign range_max = progressive_discount_last_step.number_of_items.min | default: 0 -%}
+      {%- endif -%}
+      <progress class="progress progress-success w-full h-1" value="{{ range_current }}" max="{{ range_max }}"></progress>
+      <p class="text-xs font-medium leading-4 text-success">
+        {% if progressive_discount.selected_step == progressive_discount_last_step %}
+          Parabéns! Você atingiu o maior desconto disponível de {{ progressive_discount.selected_step.discount.value }}{% if progressive_discount.selected_step.discount.type == "percentage" %}%{% endif %}!
+        {% else %}
+          {%- if progressive_discount_next_step.price -%}
+            {%- assign value_difference = progressive_discount_next_step.price.min | minus: progressive_discount.total_value | format_number: "C" -%}
+            {%- assign value_suffix = "" -%}
+          {%- endif -%}
+          {%- if progressive_discount_next_step.number_of_items -%}
+            {%- assign value_difference = progressive_discount_next_step.number_of_items.min | minus: progressive_discount.total_quantity -%}
+            {%- assign value_suffix = value_difference | pluralize: " item", " itens" -%}
+          {%- endif -%}
+          Adicione + <strong>{{ value_difference }}{{ value_suffix }}</strong> e ganhe <strong>{{ progressive_discount_next_step.discount.value }}{% if progressive_discount_next_step.discount.type == "percentage" %}%{% endif %}</strong> de desconto.
+          {% if progressive_discount.category_url %}
+            <a href="{{ progressive_discount.category_url }}" target="_blank" class="underline font-semibold">Veja a lista</a>
+          {% endif %}
+        {% endif %}
+      </p>
+      <div class="flex items-center justify-between w-full">
+        {% for step in progressive_discount.steps %}
+          {% assign selected_step = false %}
+          {% if step.discount.value <= progressive_discount.selected_step.discount.value %}
+            {% assign selected_step = true %}
+          {% endif %}
+          <div class="flex items-center justify-center rounded-lg w-16 py-2 h-8 border border-success text-xs font-medium leading-4 {% if selected_step %} bg-success text-neutral {% else %} bg-neutral text-base-content {% endif %}">
+            {{ step.discount.value }}
+            {%- if step.discount.type == "percentage" -%}%{%- endif -%}
+            {% if selected_step %}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <mask id="mask0_724_16701" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="16">
+                  <rect width="16" height="16" fill="#D9D9D9"/>
+                </mask>
+                <g mask="url(#mask0_724_16701)">
+                  <path d="M6.36689 12.0001L2.56689 8.20007L3.51689 7.25007L6.36689 10.1001L12.4836 3.9834L13.4336 4.9334L6.36689 12.0001Z" fill="white"/>
+                </g>
+              </svg>
+
+            {% endif %}
+          </div>
+          {% unless forloop.last %}
+            <div class="flex-1 h-px bg-success"></div>
+          {% endunless %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endunless %}

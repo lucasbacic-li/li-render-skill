@@ -1,0 +1,9 @@
+{% if data.status.logged %}
+  <a href="/conta/index">
+    {{data.status.name}}
+  </a>
+{% else %}
+  <a href="/conta/login">
+    Go to login
+  </a>
+{% endif %}

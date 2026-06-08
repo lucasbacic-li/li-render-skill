@@ -1,0 +1,25 @@
+<div class="ora-footer__legal">
+  <p>
+    {% if data.store.business_name or data.store.owner_name %}
+      {{ data.store.business_name | default: data.store.owner_name }} —
+    {% endif %}
+    {% if data.store.document_number %}
+      <span style="white-space:nowrap">{% if data.store.store_type == 'PJ' %}CNPJ{% else %}CPF{% endif %}: {{ data.store.document_number | format_cpfcnpj }}</span> ·
+    {% endif %}
+    © Todos os direitos reservados. {{ "now" | date: "%Y" }}
+  </p>
+  {% if data.store.address %}
+    <p>
+      {{ data.store.address.street }},
+      {{ data.store.address.number }}
+      {% if data.store.address.complement %} - {{ data.store.address.complement }}{% endif %}
+      - {{ data.store.address.district }},
+      {{ data.store.address.city }}/{{ data.store.address.state }}
+      · CEP:
+      {% if data.store.address.zip_code contains '-' %}{{ data.store.address.zip_code }}{% else %}{{ data.store.address.zip_code | slice: 0, 5 }}-{{ data.store.address.zip_code | slice: 5, 8 }}{% endif %}
+    </p>
+  {% endif %}
+  <a class="ora-footer__poweredby" href="https://www.lojaintegrada.com.br?utm_source=lojas&utm_medium=rodape&utm_campaign={{ data.store.domain }}" target="_blank" title="Loja Integrada - Plataforma de loja virtual.">
+    <img src="{{ ctx.static_domain }}/production/static/whitelabel/lojaintegrada/img/logo-lojaintegrada-gray.svg" width="150" height="22" loading="lazy" alt="Powered by Loja Integrada" />
+  </a>
+</div>

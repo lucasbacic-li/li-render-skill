@@ -1,0 +1,13 @@
+{% if data.suggestion_products.products.size > 0 %}
+  <div id="menu_product_suggestion" class="mega-menu-products">
+    <ul class="flex justify-around gap-5">
+      {%- assign img_height = '200' -%}
+      {%- assign img_width = img_height | times: 2 -%}
+      {% for product in data.suggestion_products.products limit: 3 %}
+        <li class="max-w-50">
+          {% render 'shared/components/product-card/index', product: product, forloop: forloop, img_width: img_width, img_height: img_height %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}

@@ -1,0 +1,154 @@
+{%- comment -%}
+  Componente Shelf - Vitrine de Produtos
+
+  Props aceitos:
+  - products: Array de produtos (direto) | ou usa data.shelf_result.products
+  - shelf_result: Objeto shelf_result (com .products dentro)
+  - title: Título da shelf (string)
+  - shelf_type: 'carousel' ou 'grid' (default: 'carousel')
+  - slides_per_view: Número de slides visíveis no mobile (default: 2.15 - mostra 2 + peek do terceiro)
+  - slides_per_view_md: Número de slides em tablet 768px+ (default: 4)
+  - slides_per_view_lg: Número de slides em desktop 1024px+ (default: 5)
+  - show_title: Boolean para mostrar título (default: true se title existir)
+
+  Uso:
+  {% render 'shared/components/shelf/index', products: array_de_produtos, title: 'Título' %}
+  {% render 'shared/components/shelf/index', shelf_result: data.shelf_result, slides_per_view: 2, slides_per_view_md: 3, slides_per_view_lg: 4 %}
+{%- endcomment -%}
+
+{%- comment -%} Normaliza a fonte de produtos {%- endcomment -%}
+{%- if products.size > 0 -%}
+  {%- assign shelf_products = products -%}
+{%- elsif shelf_result.size > 0 -%}
+  {%- if shelf_result.products -%}
+    {%- assign shelf_products = shelf_result.products -%}
+  {%- else -%}
+    {%- assign shelf_products = shelf_result -%}
+  {%- endif -%}
+{%- elsif data.shelf_result.products.size > 0 -%}
+  {%- assign shelf_products = data.shelf_result.products -%}
+{%- endif -%}
+
+{%- comment -%} Props com defaults (mobile first) {%- endcomment -%}
+{%- assign shelf_title = title | default: props.title -%}
+{%- assign shelf_type = shelf_type | default: props.shelf_type | default: 'carousel' -%}
+{%- assign show_title = show_title | default: props.show_title | default: true -%}
+{%- comment -%} Mobile: 1 produto largo + corte do 2º (afford. de swipe), no lugar de 2 espremidos. {%- endcomment -%}
+{%- assign slides_per_view = slides_per_view | default: props.slides_per_view | default: 1.2 | plus: 0.0 -%}
+{%- assign slides_per_view_md = slides_per_view_md | default: props.slides_per_view_md | default: 4 | plus: 0.0 -%}
+{%- assign slides_per_view_lg = slides_per_view_lg | default: props.slides_per_view_lg | default: 5 | plus: 0.0 -%}
+
+{%- comment -%}
+  Preenchimento total da faixa: quando há MENOS produtos que os slides-por-view
+  pedidos, reduz o slides-per-view ao nº de produtos. Assim os cards CRESCEM e
+  ocupam toda a largura (sem slot vazio / gap nas laterais), em vez de ficarem no
+  tamanho de "5-up" e centralizados. Com mais produtos que os slots, mantém o
+  peek/scroll do carrossel intacto.
+{%- endcomment -%}
+{%- assign shelf_count = shelf_products.size | plus: 0.0 -%}
+{%- if slides_per_view > shelf_count -%}{%- assign slides_per_view = shelf_count -%}{%- endif -%}
+{%- if slides_per_view_md > shelf_count -%}{%- assign slides_per_view_md = shelf_count -%}{%- endif -%}
+{%- if slides_per_view_lg > shelf_count -%}{%- assign slides_per_view_lg = shelf_count -%}{%- endif -%}
+
+{%- comment -%} Slides preenchem a faixa → sem centralização (era ela que criava o gap lateral). {%- endcomment -%}
+{%- assign shelf_justify_items = '' -%}
+
+{%- if shelf_products.size > 0 -%}
+  <div class="container flex flex-col gap-6 py-4 max-md:px-0 content-auto-[500px]">
+    {%- if shelf_type == 'carousel' -%}
+      <carousel-embla
+        data-slides-per-view="{{ slides_per_view | replace: ',', '.' }}"
+        data-slides-per-view-md="{{ slides_per_view_md | replace: ',', '.' }}"
+        data-slides-per-view-lg="{{ slides_per_view_lg | replace: ',', '.' }}"
+        data-gap="1.5rem"
+        data-loop="false"
+        data-draggable="true"
+        class="flex flex-col gap-6 pb-5"
+      >
+        <div class="flex items-center justify-between gap-5 px-4 md:px-0">
+          {%- if show_title and shelf_title -%}
+            <h2 class="text-[clamp(1.3rem,2.4vw,2rem)] font-medium text-base-content">
+              {{ shelf_title }}
+            </h2>
+          {%- else -%}
+            <div></div>
+          {%- endif -%}
+          <div class="flex gap-2">
+            <button
+              data-carousel-prev
+              type="button"
+              class="flex items-center justify-center w-11 h-11 rounded-full bg-base-200 transition-all hover:scale-110"
+              aria-label="Slide anterior"
+            >
+              <svg class="w-5 h-5 text-base-content" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              data-carousel-next
+              type="button"
+              class="flex items-center justify-center w-11 h-11 rounded-full bg-base-200 transition-all hover:scale-110"
+              aria-label="Próximo slide"
+            >
+              <svg class="w-5 h-5 text-base-content" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="embla overflow-hidden px-4 md:px-0">
+          {%- assign slide_percentage = 100.0 | divided_by: slides_per_view -%}
+          {%- assign gap_adjustment = 1.5 | divided_by: slides_per_view -%}
+          {%- assign slide_percentage_md = 100.0 | divided_by: slides_per_view_md -%}
+          {%- assign gap_adjustment_md = 1.5 | divided_by: slides_per_view_md -%}
+          {%- assign slide_percentage_lg = 100.0 | divided_by: slides_per_view_lg -%}
+          {%- assign gap_adjustment_lg = 1.5 | divided_by: slides_per_view_lg -%}
+          <div
+            class="embla__container flex gap-6 {{ shelf_justify_items }}"
+            style="
+              --slide-width: calc({{ slide_percentage | replace: ',', '.' }}% - 1.5rem + {{ gap_adjustment | replace: ',', '.' }}rem);
+              --slide-width-md: calc({{ slide_percentage_md | replace: ',', '.' }}% - 1.5rem + {{ gap_adjustment_md | replace: ',', '.' }}rem);
+              --slide-width-lg: calc({{ slide_percentage_lg | replace: ',', '.' }}% - 1.5rem + {{ gap_adjustment_lg | replace: ',', '.' }}rem);
+            "
+          >
+            {% for product in shelf_products %}
+              <div class="embla__slide embla__slide--product min-w-0">
+                {% render 'shared/components/product-card/index', product: product, forloop: forloop %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {%- if shelf_products.size > slides_per_view -%}
+          {%- assign total_dots = shelf_products.size | divided_by: slides_per_view | ceil -%}
+          <div class="flex justify-center md:hidden">
+            {% for i in (1..total_dots) %}
+              <button
+                data-carousel-dot
+                class="group block py-3 px-1"
+                aria-label="Ir para página {{ forloop.index }}"
+              >
+                <span class="block w-4 h-0.75 rounded-sm bg-base-300 group-aria-current:bg-primary group-aria-current:w-8 transition-all duration-300"></span>
+              </button>
+            {% endfor %}
+          </div>
+        {%- endif -%}
+      </carousel-embla>
+
+    {%- else -%}
+      {%- comment -%} Grid mode {%- endcomment -%}
+      {%- if show_title and shelf_title -%}
+        <h2 class="text-[clamp(1.3rem,2.4vw,2rem)] font-medium text-base-content md:py-2">
+          {{ shelf_title }}
+        </h2>
+      {%- endif -%}
+      <div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 pr-5">
+        {% for product in shelf_products %}
+          {% render 'shared/components/product-card/index', product: product, forloop: forloop %}
+        {% endfor %}
+      </div>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+

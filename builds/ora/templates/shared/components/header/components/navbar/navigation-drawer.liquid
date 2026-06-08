@@ -1,0 +1,41 @@
+<div class="drawer">
+  <input id="mobile-navigation-toggle" type="checkbox" class="drawer-toggle peer" aria-label="Menu de navegação" hx-preserve autocomplete="off" />
+  <div class="drawer-side group/navigation">
+    <label for="mobile-navigation-toggle" aria-label="Fechar menu" class="drawer-overlay"></label>
+    <div
+      class="w-full max-w-full flex h-full flex-col overflow-y-auto scrollbar-thin bg-neutral text-base-content"
+      aria-modal="true"
+      role="dialog"
+    >
+      <div class="ora-drawer-head">
+        <span class="ora-drawer-head__title ora-drawer-title">Menu</span>
+        <label for="mobile-navigation-toggle" class="ora-drawer-head__close cursor-pointer shrink-0" aria-label="Fechar menu">
+          <span class="sr-only">Fechar menu</span>
+          <svg class="fill-current size-5 shrink-0" role="img" aria-hidden="true">
+            <use xlink:href="/static/img/fontawesome-solid.svg#xmark" href="/static/img/fontawesome-solid.svg#xmark"></use>
+          </svg>
+        </label>
+      </div>
+      <div class="py-5 px-6">
+        <a href="/conta/index" class="btn btn-xl w-full text-lg">Minha conta</a>
+      </div>
+      <div
+        class="hidden group-peer-checked/navigation:block py-5 px-6"
+        hx-trigger="intersect once"
+        hx-get="/partial/header/menu-mobile"
+        hx-select=".header_menu_mobile"
+        hx-swap="outerHTML"
+        hx-indicator="find .htmx-indicator"
+      >
+        <div class="htmx-indicator flex flex-col gap-5">
+          <div class="skeleton opacity-50 h-5 w-1/2"></div>
+          <div class="skeleton opacity-50 h-5 w-full"></div>
+          <div class="skeleton opacity-50 h-5 w-full"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{%- comment -%}ora-sync{%- endcomment -%}

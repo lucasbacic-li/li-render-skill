@@ -1,0 +1,194 @@
+{%- assign gift_condition = data.cart_offers_conditions.gift -%}
+
+<minicart-drawer>
+  <input id="header-minicart-drawer-toggle" type="checkbox" class="drawer-toggle hidden" autocomplete="off" />
+  <div
+    id="header-minicart-modal"
+    class="drawer-side fixed inset-0 pointer-events-none opacity-0 transition-opacity duration-300"
+    role="dialog"
+    aria-labelledby="minicart-over-title"
+    aria-modal="true"
+  >
+    <label for="header-minicart-drawer-toggle" aria-label="Fechar minicart" class="drawer-overlay absolute inset-0 bg-black/50 [.drawer-side:not(.pointer-events-none)_&]:pointer-events-auto"></label>
+    <div class="w-full max-w-md flex h-full flex-col overflow-y-auto scrollbar-thin bg-neutral text-base-content ml-auto translate-x-full transition-transform duration-300 [.drawer-side:not(.pointer-events-none)_&]:pointer-events-auto">
+      <div class="ora-drawer-head">
+        <span class="ora-drawer-head__title ora-drawer-title" id="minicart-over-title">
+          Sua sacola
+          {% if data.cart.items.size > 0 %}
+            ({{ data.cart.items.size }})
+          {% endif %}
+        </span>
+        <label for="header-minicart-drawer-toggle" class="ora-drawer-head__close cursor-pointer shrink-0" data-testid="li-minicart-drawer-close" aria-label="Fechar carrinho">
+          <span class="sr-only">Fechar carrinho</span>
+          <svg class="fill-current size-5 shrink-0" role="img" aria-hidden="true">
+            <use xlink:href="/static/img/fontawesome-solid.svg#xmark" href="/static/img/fontawesome-solid.svg#xmark"></use>
+          </svg>
+        </label>
+      </div>
+      <div
+        id="header-minicart-content"
+        hx-trigger="li-update-minicart from:body, li-cart-updated from:body"
+        hx-select="#header-minicart-content"
+        hx-target="this"
+        hx-swap="outerHTML"
+        hx-get="{{ routes.cart_minicart }}"
+        hx-disabled-elt="find button, find input"
+        class="flex-1 flex flex-col gap-3"
+      >
+        {% if with_session %}
+          {% if data.cart.items.size > 0 %}
+            {% render 'shared/components/header/components/minicart/components/free-shipping-alert/index' %}
+            {% render 'shared/components/header/components/minicart/components/progressive-discount/index' %}
+            <div class="flex-1 overflow-y-auto scrollbar-thin">
+              <ul role="list" class="flex flex-col">
+                {% assign sorted_items = data.cart.items | sort_natural: 'sku' %}
+                {% for item in sorted_items %}
+                  {% render 'shared/components/header/components/minicart/minicart-item', item: item %}
+                {% endfor %}
+                {% assign sorted_gift_items = data.cart.gift_items | sort_natural: 'sku' %}
+                {% for item in sorted_gift_items %}
+                  {% render 'shared/components/header/components/minicart/minicart-item', item: item, readonly: true %}
+                {% endfor %}
+              </ul>
+
+              {% render 'shared/components/header/components/minicart/components/gift/index' %}
+            </div>
+            <div class="flex flex-col gap-4 p-5 border-t border-[color:var(--ora-line-2)]">
+              <div class="flex gap-2">
+                <button 
+                  type="button"
+                  hx-get="/partial/shipping-calculator"
+                  hx-target="#freight-calculator-portal"
+                  hx-swap="innerHTML"
+                  hx-indicator="find .htmx-indicator"
+                  class="btn btn-secondary gap-2 h-10 w-1/2 flex-1"
+                  data-testid="li-minicart-freight-btn"
+                >Calcular frete</button>
+                {% render 'shared/components/header/components/minicart/components/coupon/coupon-button' %}
+              </div>
+              <div class="flex flex-col gap-4 text-sm font-medium text-base-content">
+                {% if data.cart.totals.items != data.cart.totals.total %}
+                  <div class="flex items-center justify-between">
+                    <p>Subtotal</p>
+                    <p class="font-bold" data-testid="li-minicart-subtotal-value">{{ data.cart.totals.items | default: 0 | format_number: "C" }}</p>
+                  </div>
+                  {% if data.cart.totals.total_discount > 0 %}
+                    <div class="flex items-center justify-between">
+                      <p>Descontos</p>
+                      <p class="font-bold text-success" data-testid="li-minicart-discount-value">{{ data.cart.totals.total_discount | default: 0 | format_number: "C" }}</p>
+                    </div>
+                  {% endif %}
+
+                {% endif %}
+                {% if data.cart.totals.shipping > 0 %}
+                  <div class="flex items-center justify-between">
+                    <p>Frete</p>
+                    <p class="font-bold" data-testid="li-minicart-shipping-value">{{ data.cart.totals.shipping | default: 0 | format_number: "C" }}</p>
+                  </div>
+                {% endif %}
+                <div class="flex items-center justify-between">
+                  <p>Total estimado</p>
+                  <p class="font-bold" data-testid="li-minicart-total-value">{{ data.cart.totals.total | default: 0 | format_number: "C" }}</p>
+                </div>
+              </div>
+              <a href="/checkout" class="btn btn-primary btn-xl w-full" data-testid="li-minicart-checkout-btn">
+                Finalizar compra
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0 12C0 5.37258 5.37258 0 12 0C18.6274 0 24 5.37258 24 12C24 18.6274 18.6274 24 12 24C5.37258 24 0 18.6274 0 12Z" fill="white"/>
+                  <mask id="mask0_324_14537" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+                    <rect width="24" height="24" fill="#D9D9D9"/>
+                  </mask>
+                  <g mask="url(#mask0_324_14537)">
+                    <path d="M13.625 17L12.4875 15.7917L15.3719 12.8333H5.5V11.1667H15.3719L12.4875 8.20833L13.625 7L18.5 12L13.625 17Z" fill="currentColor"/>
+                  </g>
+                </svg>
+              </a>
+            </div>
+          {% else %}
+            <div class="flex-1 flex items-center justify-center gap-6 flex-col py-6">
+
+              <div class="flex flex-col gap-2.5 text-center items-center">
+                <h2 class="text-lg leading-tight">Seu carrinho está vazio</h2>
+                <p class="max-w-66 text-sm">Não sabe por onde começar? Veja os produtos abaixo.</p>
+              </div>
+              <div hx-trigger="intersect once" hx-get="/partial/cart/product-suggestion" hx-select="#minicart_product_suggestion" hx-swap="outerHTML"></div>
+              <a class="btn btn-primary btn-md" href="{{ routes.root }}">
+                Continuar comprando
+              </a>
+            </div>
+          {% endif %}
+          <script>
+            document.querySelector('minicart-drawer')?.updateMinicartTotalItems({{ data.cart.items.size | default: 0 }});
+          </script>
+        {% else %}
+          <div class="absolute top-1/2 left-1/2 -mt-5 -ml-5">
+            <svg class="fill-current size-10 animate-spin" role="img" aria-hidden="true">
+              <use xlink:href="/static/img/fontawesome-solid.svg#spinner" href="/static/img/fontawesome-solid.svg#spinner"></use>
+            </svg>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div id="freight-calculator-portal"></div>
+  <div id="coupon-portal"></div>
+</minicart-drawer>
+
+{% unless with_session %}
+  <script defer src="{% asset_url '/scripts/minicart-drawer.webc.js' %}"></script>
+{% endunless %}
+
+<script>
+  {% if with_session %}
+    document.querySelector('minicart-drawer')?.updateMinicartTotalItems({{ data.cart.items.size | default: 0 }});
+  {% else %}
+    var totalItems = localStorage.getItem("li-minicart-total-items") || 0;
+    var totalItemsElements = document.querySelectorAll(".header-minicart-totalitems");
+    totalItemsElements.forEach(function(element) {
+      element.textContent = totalItems;
+    });
+  {% endif %}
+</script>
+
+<script>
+  (function() {
+    const checkbox = document.getElementById('header-minicart-drawer-toggle');
+    const drawerSide = document.getElementById('header-minicart-modal');
+    const minicartContent = document.getElementById('header-minicart-content');
+    
+    if (checkbox && drawerSide) {
+      if (!checkbox.checked) {
+        drawerSide.classList.add('opacity-0', 'pointer-events-none');
+      }
+      
+      checkbox.addEventListener('change', function() {
+        if (this.checked) {
+          drawerSide.classList.remove('pointer-events-none');
+          drawerSide.classList.remove('opacity-0');
+          drawerSide.querySelector('.w-full').classList.remove('translate-x-full');
+          
+          if (minicartContent && typeof htmx !== 'undefined' && !minicartContent.classList.contains('htmx-request')) {
+            htmx.trigger(minicartContent, 'li-update-minicart');
+          }
+        } else {
+          drawerSide.classList.add('opacity-0');
+          drawerSide.querySelector('.w-full').classList.add('translate-x-full');
+          
+          setTimeout(() => {
+            drawerSide.classList.add('pointer-events-none');
+          }, 300);
+        }
+      });
+    }
+    
+    window.addEventListener('open-minicart', function() {
+      if (checkbox && !checkbox.checked) {
+        checkbox.checked = true;
+        checkbox.dispatchEvent(new Event('change'));
+      }
+    });
+  })();
+</script>
+
+{%- comment -%}ora-sync{%- endcomment -%}

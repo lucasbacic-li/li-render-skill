@@ -1,0 +1,11 @@
+{% if category %}
+  <li>
+    <a href="{{ category.path }}" class="block hover:text-primary">
+      {{ category.name }}
+    </a>
+  </li>
+  {% if category.child %}
+    {% render 'shared/components/breadcrumb/item', category: category.child %}
+  {% endif %}
+{% endif %}
+

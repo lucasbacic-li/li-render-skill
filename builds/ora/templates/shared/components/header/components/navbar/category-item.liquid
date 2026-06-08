@@ -1,0 +1,62 @@
+{%- comment -%}
+  Componente: Category Item (Recursivo)
+  Descrição: Item de categoria com suporte a múltiplos níveis de aninhamento
+  Props:
+    - category: objeto da categoria
+    - prefix: prefixo para gerar IDs únicos (ex: "cat-1-2")
+    - level: nível de profundidade (0 = raiz)
+    - forloop: objeto forloop do contexto atual
+{%- endcomment -%}
+
+{%- assign level = level | default: 0 -%}
+{%- assign prefix = prefix | default: 'cat' -%}
+{%- assign toggle_id = prefix | append: '-' | append: forloop.index -%}
+
+<li>
+  <div class="flex items-center justify-between w-full">
+    <a href="{{ category.path }}" class="flex-1 block text-base py-2.5 break-words">{{ category.name }}</a>
+    {% if category.children.size > 0 %}
+      <input
+        id="{{ toggle_id }}"
+        type="checkbox"
+        class="peer absolute right-0 opacity-0 pointer-events-none"
+      />
+      <label
+        for="{{ toggle_id }}"
+        class="btn btn-ghost btn-sm pr-2 pl-10 -mr-2"
+      >
+        <svg class="fill-current size-3.5 shrink-0" role="img" aria-hidden="true">
+          <use xlink:href="/static/img/fontawesome-solid.svg#chevron-right" href="/static/img/fontawesome-solid.svg#chevron-right"></use>
+        </svg>
+      </label>
+      {%- comment -%} Painel de subcategorias {%- endcomment -%}
+      <div class="peer-checked:translate-x-0 -translate-x-full absolute top-0 left-0 w-full bg-neutral z-50 transition-all duration-350 h-full overflow-y-auto">
+        {%- comment -%} Header com botão voltar {%- endcomment -%}
+        <div class="py-5 px-6 sticky top-0 bg-neutral z-10">
+          <label
+            for="{{ toggle_id }}"
+            class="btn btn-secondary btn-xl btn-circle w-full justify-start px-6 break-words"
+          >
+            <svg class="fill-current size-3.5 transition-transform duration-200" role="img" aria-hidden="true">
+              <use xlink:href="/static/img/fontawesome-solid.svg#arrow-left" href="/static/img/fontawesome-solid.svg#arrow-left"></use>
+            </svg>
+            {{ category.name }}
+          </label>
+        </div>
+        <ul class="px-6">
+          {% for child in category.children %}
+            {%- assign child_prefix = toggle_id -%}
+            {%- assign child_level = level | plus: 1 -%}
+            {% render 'shared/components/header/components/navbar/category-item', 
+              category: child, 
+              prefix: child_prefix, 
+              level: child_level,
+              forloop: forloop
+            %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+</li>
+

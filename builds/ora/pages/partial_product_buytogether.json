@@ -1,0 +1,18 @@
+{
+  "$schema": "https://cdn.awsli.com.br/public/render/schema/v1.json",
+  "partial": {
+    "path": "/partial/product/buytogether",
+    "components": [
+      {
+        "data": {
+          "buy_together": {
+            "function": "get_buy_together"
+          }
+        },
+        "type": "template",
+        "template": "pages/product/components/buy-together/index.liquid"
+      }
+    ]
+  },
+  "_version": "3"
+}

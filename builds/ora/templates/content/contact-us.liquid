@@ -1,0 +1,180 @@
+<div id="contact-us" class="container pt-10">
+  <h1 class="mb-5 text-center text-base-content">Fale Conosco</h1>
+  <div class="mb-16 md:mb-20 flex items-top gap-6">
+    <table class="table-auto border-collapse border border-base-content/20 w-full">
+      {% if data.store.owner_name and data.store.store_type == 'PF' %}
+        <tr class="hover:bg-base-200">
+          <td class="p-4 border border-base-content/20 break-words min-w-36"><strong>Responsável:</strong></td>
+          <td class="p-4 border border-base-content/20 break-words">{{ data.store.owner_name }}</td>
+        </tr>
+      {% endif %}
+      {% if data.store.business_name %}
+        <tr class="hover:bg-base-200">
+          <td class="p-4 border border-base-content/20 break-words min-w-36"><strong>Razão Social:</strong></td>
+          <td class="p-4 border border-base-content/20 break-words">{{ data.store.business_name }}</td>
+        </tr>
+      {% endif %}
+      {% if data.store.store_type and data.store.document_number %}
+        <tr class="hover:bg-base-200">
+          <td class="p-4 border border-base-content/20 break-words min-w-36">
+            <strong>
+              {% if data.store.store_type == 'PF' %}CPF:{% endif %}
+              {% if data.store.store_type == 'PJ' %}CNPJ:{% endif %}
+            </strong>
+          </td>
+          <td class="p-4 border border-base-content/20 break-words">
+            {{ data.store.document_number | format_cpfcnpj }}
+          </td>
+        </tr>
+      {% endif %}
+      {% if data.store.phone %}
+        <tr class="hover:bg-base-200">
+          <td class="p-4 border border-base-content/20 break-words min-w-36">
+            <strong>Telefone:</strong>
+          </td>
+          <td class="p-4 border border-base-content/20 break-words">
+            <a href="tel://{{ data.store.phone | only_numbers }}">
+              {{ data.store.phone | format_phone }}
+            </a>
+          </td>
+        </tr>
+      {% endif %}
+      {% if data.store.whatsapp %}
+        <tr class="hover:bg-base-200">
+          <td class="p-4 border border-base-content/20 break-words min-w-36">
+            <strong>Whatsapp:</strong>
+          </td>
+          <td class="p-4 border border-base-content/20 break-words">
+            <a href="https://wa.me/55{{ data.store.whatsapp | only_numbers }}"" target="_blank">
+              {{ data.store.whatsapp | format_phone }}
+            </a>
+          </td>
+        </tr>
+      {% endif %}
+      {% if data.store.skype %}
+        <tr class="hover:bg-base-200">
+          <td class="p-4 border border-base-content/20 break-words min-w-36">
+            <strong>Skype:</strong>
+          </td>
+          <td class="p-4 border border-base-content/20 break-words">
+            <a href="skype:{{ data.store.skype }}">
+              {{ data.store.skype }}
+            </a>
+          </td>
+        </tr>
+      {% endif %}
+      {% if data.store.address %}
+        <tr class="hover:bg-base-200">
+          <td class="p-4 border border-base-content/20 break-words min-w-36">
+            <strong>Endereço:</strong>
+          </td>
+          <td class="p-4 border border-base-content/20 break-words">
+            {{ data.store.address.street }},
+            {{ data.store.address.number }}
+            {% if data.store.address.complement %}
+              - {{ data.store.address.complement }}
+            {% endif %}
+            - {{ data.store.address.district }},
+            {{ data.store.address.city }}/
+            {{ data.store.address.state }}
+            - {% if data.store.address.zip_code contains '-' %}{{ data.store.address.zip_code }}{% else %}{{ data.store.address.zip_code | slice: 0, 5 }}-{{ data.store.address.zip_code | slice: 5, 8 }}{% endif %}
+          </td>
+        </tr>
+      {% endif %}
+      {% if data.store.email %}
+        <tr class="hover:bg-base-200">
+          <td class="p-4 border border-base-content/20 break-words min-w-36">
+            <strong>Email:</strong>
+          </td>
+          <td class="p-4 border border-base-content/20 break-words">
+            <a href="mailto:{{ data.store.email }}">{{ data.store.email }}</a>
+          </td>
+        </tr>
+      {% endif %}
+    </table>
+    {%- if data.store.address and data.store.address.show -%}
+      <div class="hidden md:block w-full md:w-1/2 border border-base-content/20">
+        {%- capture google_maps_address -%}
+          {{ data.store.address.street }}, {{ data.store.address.number }} - {{ data.store.address.district }}, {{ data.store.address.city }}/{{ data.store.address.state }}
+        {%- endcapture -%}
+        <iframe loading="lazy" width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?q={{ google_maps_address | cgi_escape }}&amp;output=embed&amp;ie=UTF8"></iframe>
+      </div>
+    {%- endif -%}
+  </div>
+  <h2 class="my-5 text-center text-base-content">Formulário de contato</h2>
+  <form
+    id="contact-us-form"
+    method="post"
+    action="{{ routes.contact_us }}"
+    hx-post="{{ routes.contact_us }}"
+    hx-select="#contact-us-form"
+    hx-swap="outerHTML show:top"
+    hx-indicator="#contact-us-spinner"
+    hx-disabled-elt="find button, input, find textarea"
+  >
+    {% if data.contact_us.success %}
+      <div class="mt-16 text-center text-xl">
+        <svg class="fill-current text-content-base size-16 mx-auto mb-5" role="img" aria-hidden="true">
+          <use xlink:href="/static/img/fontawesome-solid.svg#check" href="/static/img/fontawesome-solid.svg#check"></use>
+        </svg>
+        Mensagem enviada com sucesso.<br />Em breve entraremos em contato.
+      </div>
+    {% else %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-10">
+        <div>
+          <label for="contact_us-name" class="block mb-1 text-content-base font-semibold uppercase">Nome *</label>
+          <input hx-preserve type="text" id="contact_us-name" name="name" class="input w-full" required maxlength="100" />
+        </div>
+        <div>
+          <label for="contact_us-email" class="block mb-1 text-content-base font-semibold uppercase">E-mail *</label>
+          <input hx-preserve type="email" id="contact_us-email" name="email" class="input w-full" required maxlength="128" />
+        </div>
+        <div>
+          <label for="contact_us-phone" class="block mb-1 text-content-base font-semibold uppercase">Telefone *</label>
+          <input-mask>
+            <input hx-preserve type="tel" id="contact_us-phone" name="phone_number" class="input w-full" required maxlength="15" pattern="\(\d{2}\) \d{4,5}-\d{4}" data-mask="phone" />
+          </input-mask>
+        </div>
+        <div>
+          <label for="contact_us-order" class="block mb-1 text-content-base font-semibold uppercase">Número do pedido</label>
+          <input hx-preserve type="text" id="contact_us-order" name="order" class="input w-full" maxlength="50" />
+        </div>
+        <div class="md:col-span-2">
+          <label for="contact_us-message" class="block mb-1 text-content-base font-semibold uppercase">Mensagem *</label>
+          <textarea hx-preserve id="contact_us-message" name="message" class="textarea w-full" required maxlength="5000" rows="5"></textarea>
+        </div>
+        {%- assign politica_privacidade_pagina = layout_attributes.configuracao.politica_privacidade_pagina | plus: 0 -%}
+        {%- assign politica_privacidade = data.institutional_pages | where: 'id', politica_privacidade_pagina | first -%}
+        {% if layout_attributes.configuracao.politica_privacidade_contato and politica_privacidade %}
+          <div class="md:col-span-2">
+            <label class="flex items-center">
+              <input type="checkbox" name="accept_terms" class="mr-2 p-2 accent-primary" required />
+              <span class="text-content-base font-semibold leading-7 uppercase">Li e concordo com os termos da <a href="/pagina/{{ politica_privacidade.url }}" target="_blank" class="link">Política de Privacidade</a>.</span>
+            </label>
+          </div>
+        {% endif %}
+      </div>
+      {% comment %} #TODO: RECAPTCHA {% endcomment %}
+      <div class="flex justify-end mt-6">
+        <button type="submit" class="ora-cta relative">
+          <span class="ora-cta__label">Enviar</span>
+          <span class="ora-cta__box">
+            <svg role="img" aria-hidden="true">
+              <use xlink:href="/static/img/fontawesome-solid.svg#arrow-right" href="/static/img/fontawesome-solid.svg#arrow-right"></use>
+            </svg>
+          </span>
+          <span id="contact-us-spinner" class="hidden [&.htmx-request]:flex absolute inset-0 size-full flex-wrap justify-center content-center bg-base-content/10">
+            <svg class="fill-current animate-spin size-4" role="img" aria-hidden="true">
+              <use xlink:href="/static/img/fontawesome-solid.svg#spinner" href="/static/img/fontawesome-solid.svg#spinner"></use>
+            </svg>
+          </span>
+        </button>
+      </div>
+      {% if data.contact_us.success == false %}
+        <div class="mt-3 text-error">
+          {{ data.contact_us.message|default: 'Erro ao enviar a mensagem. Recarregue a página e tente novamente.' }}
+        </div>
+      {% endif %}
+    {% endif %}
+  </form>
+</div>

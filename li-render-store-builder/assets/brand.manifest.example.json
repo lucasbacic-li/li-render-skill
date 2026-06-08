@@ -1,0 +1,44 @@
+{
+  "$schema": "li-render-store-builder/brand-manifest",
+  "name": "Nome da Marca",
+  "store": {
+    "handle": "minha-loja",
+    "theme_name": "meu-tema"
+  },
+  "colors": {
+    "tokens": "caminho/para/colors.json",
+    "css_vars": "caminho/para/colors_and_type.css",
+    "roles": {
+      "surface": "nome-do-token-claro",
+      "surface_dark": "nome-do-token-escuro",
+      "ink": "nome-do-token-texto",
+      "ink_inverse": "nome-do-token-texto-invertido",
+      "muted": "nome-do-token-suave",
+      "accent": "nome-do-token-destaque"
+    }
+  },
+  "typography": {
+    "css_vars": "caminho/para/colors_and_type.css",
+    "fontface": "caminho/para/fonts.css",
+    "roles": {
+      "headline": "serif",
+      "subhead": "grotesk",
+      "body": "mono"
+    }
+  },
+  "fonts_dir": "caminho/para/fonts",
+  "logos": {
+    "dir": "caminho/para/assets",
+    "primary": "logotype.svg",
+    "symbol": "symbol.svg",
+    "variants": {
+      "dark": "logotype-dark.svg",
+      "light": "logotype-light.svg"
+    }
+  },
+  "reference_layouts": [
+    "caminho/para/home.html"
+  ],
+  "verbal_dir": "caminho/para/verbal",
+  "imagery_dir": "caminho/para/imagens"
+}

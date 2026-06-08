@@ -1,0 +1,250 @@
+{
+  "html": {
+    "body": {
+      "components": [
+        {
+          "data": {
+            "freight_conditions": {
+              "function": "get_freight_conditions"
+            },
+            "payment_conditions": {
+              "function": "get_payment_conditions"
+            }
+          },
+          "type": "template",
+          "template": "shared/components/banner/stripe.liquid"
+        },
+        {
+          "tag": "header",
+          "type": "container",
+          "class": "ora-headbar",
+          "components": [
+            {
+              "type": "template",
+              "template": "shared/components/header/index.liquid",
+              "data": {
+                "categories": {
+                  "function": "get_category_tree"
+                }
+              }
+            },
+            {
+              "type": "template",
+              "template": "shared/components/header/components/floating-bar/index.liquid",
+              "properties": {
+                "show_back_button": true
+              }
+            },
+            {
+              "type": "template",
+              "template": "shared/components/header/components/segmented-price/index.liquid"
+            }
+          ]
+        },
+        {
+          "tag": "main",
+          "type": "container",
+          "components": [
+            {
+              "data": {
+                "banners": {
+                  "args": {
+                    "location": "product",
+                    "position": "full"
+                  },
+                  "function": "get_banners"
+                }
+              },
+              "type": "template",
+              "template": "shared/components/banner/index.liquid",
+              "properties": {
+                "position": "full"
+              }
+            },
+            {
+              "data": {
+                "banners": {
+                  "args": {
+                    "location": "product",
+                    "position": "stripe"
+                  },
+                  "function": "get_banners"
+                }
+              },
+              "type": "template",
+              "template": "shared/components/banner/index.liquid",
+              "properties": {
+                "position": "stripe"
+              }
+            },
+            {
+              "data": {
+                "banners": {
+                  "args": {
+                    "location": "product",
+                    "position": "mini"
+                  },
+                  "function": "get_banners"
+                }
+              },
+              "type": "template",
+              "template": "shared/components/banner/index.liquid",
+              "properties": {
+                "position": "mini"
+              }
+            },
+            {
+              "id": "product-details",
+              "tag": "div",
+              "type": "container",
+              "class": "container my-5 md:pt-10 grid grid-cols-1 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-5 md:gap-y-0 md:gap-x-10",
+              "components": [
+                {
+                  "type": "template",
+                  "template": "shared/components/breadcrumb/index.liquid",
+                  "properties": {
+                    "position": "col"
+                  }
+                },
+                {
+                  "type": "template",
+                  "template": "pages/product/components/images/index.liquid"
+                },
+                {
+                  "type": "template",
+                  "template": "pages/product/index.liquid"
+                },
+                {
+                  "tag": "div",
+                  "type": "container",
+                  "class": "md:mt-10 md:col-start-1 divide-y-1 divide-base-200 has-[*]:border-t border-base-200",
+                  "components": [
+                    {
+                      "data": {
+                        "buy_together": {
+                          "function": "get_buy_together"
+                        }
+                      },
+                      "type": "template",
+                      "template": "pages/product/components/buy-together/index.liquid",
+                      "properties": {
+                        "in_page_placement": "beforeProduct"
+                      }
+                    },
+                    {
+                      "type": "template",
+                      "template": "pages/product/components/description/index.liquid"
+                    },
+                    {
+                      "data": {
+                        "buy_together": {
+                          "function": "get_buy_together"
+                        }
+                      },
+                      "type": "template",
+                      "template": "pages/product/components/buy-together/index.liquid",
+                      "properties": {
+                        "in_page_placement": "afterProduct"
+                      }
+                    },
+                    {
+                      "type": "template",
+                      "template": "pages/product/components/reviews/index.liquid",
+                      "properties": {
+                        "content": "product"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {
+                "payment_conditions": {
+                  "function": "get_product_installments"
+                }
+              },
+              "type": "template",
+              "template": "pages/product/components/payments-modal/index.liquid"
+            },
+            {
+              "type": "template",
+              "template": "pages/product/components/recommendations/index.liquid",
+              "properties": {
+                "async": true
+              }
+            },
+            {
+              "data": {
+                "banners": {
+                  "args": {
+                    "location": "product",
+                    "position": "showcase"
+                  },
+                  "function": "get_banners"
+                }
+              },
+              "type": "template",
+              "template": "shared/components/banner/index.liquid",
+              "properties": {
+                "position": "showcase"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "footer",
+          "type": "container",
+          "class": "ora-footer",
+          "components": [
+            {
+              "data": {
+                "store": {
+                  "function": "get_store"
+                },
+                "categories": {
+                  "function": "get_category_tree"
+                },
+                "payment_conditions": {
+                  "function": "get_payment_conditions"
+                },
+                "institutional_pages": {
+                  "function": "get_institutional_pages"
+                }
+              },
+              "type": "template",
+              "template": "shared/components/footer/container.liquid"
+            },
+            {
+              "type": "template",
+              "template": "shared/components/footer/closing.liquid"
+            }
+          ]
+        },
+        {
+          "type": "template",
+          "template": "shared/utils/index.liquid"
+        }
+      ]
+    },
+    "head": {
+      "components": [
+        {
+          "type": "template",
+          "template": "shared/components/head/style-general.liquid"
+        },
+        {
+          "type": "template",
+          "template": "shared/components/head/seo.liquid"
+        },
+        {
+          "type": "template",
+          "template": "shared/components/head/script-general.liquid"
+        }
+      ]
+    }
+  },
+  "path": "/[product]",
+  "$schema": "https://cdn.awsli.com.br/public/render/schema/v1.json",
+  "_version": "3"
+}

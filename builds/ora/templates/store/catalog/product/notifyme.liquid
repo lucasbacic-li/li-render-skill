@@ -1,0 +1,23 @@
+{% if data.notifyme %}
+  <div id="notify-me-form" class="notify-me-result flex flex-col gap-3 my-3" hx-swap-oob="true" data-testid="li-unavailable-success">
+    <div class="flex flex-col">
+      <h3 class="ora-sheet-title">Obrigado!</h3>
+      <span class="text-base leading-6 text-base-content">
+        Você receberá um e-mail de notificação, assim que esse produto estiver disponível em estoque
+      </span>
+    </div>
+    <button type="button" class="btn btn-md btn-block" onclick="this.closest('bottom-sheet-dialog')?.close()">
+      Fechar
+    </button>
+  </div>
+{% endif %}
+
+<script type="text/javascript" id="toast-trigger" hx-swap-oob="true">
+  if (typeof window.toast === 'function') {
+    {%- if data.notifyme -%}
+      window.toast('Seu e-mail for incluído com sucesso', {type: 'success'});
+    {%- else -%}
+      window.toast('Erro ao se cadastrar. Tente novamente', {type: 'danger'});
+    {%- endif -%}
+  };
+</script>

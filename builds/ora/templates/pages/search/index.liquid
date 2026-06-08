@@ -1,0 +1,27 @@
+<div id="search-result" class="container pt-4">
+  <div class="flex flex-wrap gap-5 items-center justify-center md:justify-between">
+    <h1 class="text-base-content flex items-center gap-2" data-testid="li-search-title">
+      {{- data.category.name | default: data.brand.name | default: ctx.url.querystring.q | default: ctx.store.name -}}
+    </h1>
+    {% if data.brand.image_path %}
+      <img src="{{ data.brand.image_path | prepend: '/100x35' | prepend: ctx.static_domain }}" alt="{{ data.brand.name }}" class="ml-2 w-auto h-auto" width="100" height="35" />
+    {%- endif -%}
+    {% render 'pages/search/sort' %}
+  </div>
+  {% if data.category.description or data.brand.description %}
+    <expandable-content class="block overflow-hidden max-h-40 mb-5">
+      <div class="prose max-w-full mt-5" hx-disable>
+        {{ data.category.description | default: data.brand.description | sanitize | raw }}
+      </div>
+    </expandable-content>
+    <script defer src="{% asset_url '/scripts/expandable-content.webc.js' %}"></script>
+  {% endif %}
+  <div class="flex flex-col gap-7 pt-5 mb-10 md:flex-row md:items-start md:gap-12 md:pt-8">
+    {% render 'pages/search/components/filters/index' %}
+    {% comment %} {% render 'pages/search/sort', is_mobile: true %} {% endcomment %}
+    <div id="search-result-products" class="w-full flex flex-col gap-5 content-auto-[500px]">
+      {% render 'pages/search/products-result' %}
+      {% render 'pages/search/components/pagination/index', infinite_scroll: true %}
+    </div>
+  </div>
+</div>

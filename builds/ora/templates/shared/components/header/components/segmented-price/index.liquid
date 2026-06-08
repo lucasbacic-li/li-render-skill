@@ -1,0 +1,89 @@
+{% if layout_attributes.price_table.popup_active %}
+  <segmented-price-cep 
+    data-popup-trigger="{{ layout_attributes.price_table.popup_trigger | default: true }}"
+  >
+    {%- comment -%} Modal Dialog {%- endcomment -%}
+    <dialog class="modal">
+      <div class="modal-box max-w-sm">
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        
+        <div class="flex flex-col gap-4 my-3">
+          <svg class="fill-current size-8 mx-auto -mt-1 -mb-0.5" role="img" aria-hidden="true">
+            <use xlink:href="/static/img/fontawesome-solid.svg#location-dot" href="/static/img/fontawesome-solid.svg#location-dot"></use>
+          </svg>
+          
+          <p class="text-center text-base leading-5">
+            {{ layout_attributes.price_table.popup_text | default: "Digite seu CEP para ter acesso as ofertas da sua região:" }}
+          </p>
+          
+          <form 
+            method="post"
+            action="/conta/regiao-cep/definir"
+            hx-post="/conta/regiao-cep/definir"
+            hx-indicator="find [data-cep-spinner]"
+            hx-disabled-elt="find input, find button[type='submit']"
+            hx-swap="none"
+            class="segmented-price-form flex flex-col gap-3"
+          >
+            <p class="segmented-price-error text-center text-sm text-error hidden" aria-hidden="true">
+              Falha ao enviar solicitação. Tente novamente.
+            </p>
+
+            <input-mask>
+              <input 
+                type="text" 
+                name="cep" 
+                class="input input-bordered w-full text-center" 
+                placeholder="00000-000" 
+                required 
+                minlength="9" 
+                maxlength="9"
+                data-mask="zipcode"
+                autocomplete="postal-code"
+              />
+            </input-mask>
+            
+            <button type="submit" class="btn btn-primary btn-block">
+              <span class="segmented-price-btn-text">Continuar</span>
+              <span data-cep-spinner class="loading loading-spinner loading-sm hidden [&.htmx-request]:inline-block"></span>
+            </button>
+          </form>
+          
+          <a 
+            href="https://buscacepinter.correios.com.br/app/endereco/index.php" 
+            title="Buscar CEP nos Correios" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="link link-hover text-sm text-center flex items-center justify-center gap-1"
+          >
+            <svg class="fill-current size-4" role="img" aria-hidden="true">
+              <use xlink:href="/static/img/fontawesome-solid.svg#circle-question" href="/static/img/fontawesome-solid.svg#circle-question"></use>
+            </svg>
+            Não sei meu CEP
+          </a>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>Fechar</button>
+      </form>
+    </dialog>
+
+    {%- comment -%} Header Button {%- endcomment -%}
+    <div class="container my-1">
+      <button type="button" class="segmented-price-btn flex items-center gap-1.5 bg-transparent p-1.5 pr-5 mx-auto md:-ml-1.5 hover:underline">
+        <svg class="fill-current size-4 text-primary" role="img" aria-hidden="true">
+          <use xlink:href="/static/img/fontawesome-solid.svg#location-dot" href="/static/img/fontawesome-solid.svg#location-dot"></use>
+        </svg>
+        <span data-cep-empty>Informe seu CEP</span>
+        <span data-cep-filled class="hidden">CEP: <span data-cep-current></span></span>
+        <svg class="fill-current size-3 text-primary" role="img" aria-hidden="true">
+          <use xlink:href="/static/img/fontawesome-solid.svg#caret-down" href="/static/img/fontawesome-solid.svg#caret-down"></use>
+        </svg>
+      </button>
+    </div>
+  </segmented-price-cep>
+
+  <script defer src="{% asset_url '/scripts/segmented-price-cep.webc.js' %}"></script>
+{% endif %}

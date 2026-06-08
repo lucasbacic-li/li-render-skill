@@ -1,0 +1,226 @@
+{% if layout_attributes.product_review.active %}
+  {% if props.content == 'product' %}
+    {%- assign rating = data.product.rating -%}
+    {%- assign reviews_total = rating.total | default: 0 -%}
+    {%- assign reviews_total_float = reviews_total | plus: 0.0 -%}
+    {%- assign rating_average = rating.average | default: 0 -%}
+    {% if reviews_total > 0 or layout_attributes.product_review.display_no_ratings_message %}
+      <div id="reviews" class="content-auto-[300px]">
+        <div class="collapse collapse-plus">
+          <input type="checkbox" name="reviews-accordion" checked aria-label="Expandir avaliações do produto" />
+          <h2 class="collapse-title">Avaliações</h2>
+          <div class="collapse-content pt-8">
+            <div class="flex flex-col items-center gap-8 md:flex-row md:gap-12">
+              <div class="flex flex-wrap items-center gap-8 min-w-38 md:flex-col md:gap-4 md:items-start">
+                <div class="flex items-center gap-1">
+                  <strong class="flex items-center gap-1 font-medium text-3xl leading-9">{{ rating_average | plus: 0.0 }}<small class="text-lg"> de 5</small></strong>
+                  <svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.75 0.75C8.125 0 9.1875 0.03125 9.53125 0.75L11.5938 4.90625L16.1562 5.5625C16.9688 5.6875 17.2812 6.6875 16.6875 7.28125L13.4062 10.5L14.1875 15.0312C14.3125 15.8438 13.4375 16.4688 12.7188 16.0938L8.65625 13.9375L4.5625 16.0938C3.84375 16.4688 2.96875 15.8438 3.09375 15.0312L3.875 10.5L0.59375 7.28125C0 6.6875 0.3125 5.6875 1.125 5.5625L5.71875 4.90625L7.75 0.75Z" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="w-px h-13 bg-base-200 md:w-full md:h-px"></div>
+                <p class="flex items-center gap-3 text-lg font-medium text-base-content leading-7"><strong class="text-3xl font-medium">{{ reviews_total }}</strong> {{ reviews_total | pluralize: 'avaliação', 'avaliações' }}</p>
+              </div>
+              <div class="flex flex-col gap-2 flex-1 w-full">
+                {% for i in (1..5) reversed %}
+                  {% assign total_by_rating = rating.total_by_rating[i] | default: 0 %}
+                  {% assign percentage_by_rating = 0 %}
+                  {% if reviews_total_float > 0 %}
+                    {% assign percentage_by_rating = total_by_rating | divided_by: reviews_total_float | times: 100 | round %}
+                  {% endif %}
+                  <div class="flex items-center gap-4">
+                    <span class="text-sm font-medium block">{{ i }}</span>
+                    <div class="flex-1 relative h-1.5 bg-base-100 rounded-full ">
+                      <span class="absolute top-0 left-0 h-1.5 rounded-full bg-orange-300" style="width: {{ percentage_by_rating }}%"></span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% if reviews_total > 0 %}
+              <div class="mt-8 md:mt-10">
+                <div
+                  id="product-reviews__section"
+                  class="flex flex-col gap-5"
+                  hx-trigger="intersect once, product-reviews__act-load-more"
+                  hx-get="/partial/product/reviews"
+                  hx-include="#product-reviews__input-page, #product-reviews__input-productid"
+                  hx-select=".product-reviews__item"
+                  hx-select-oob="#product-reviews__pagination"
+                  hx-swap="beforeend"
+                  hx-indicator="#product-reviews__spinner"
+                  hx-disabled-elt="button"
+                ></div>
+                <div id="product-reviews__pagination">
+                  <input type="hidden" name="page" id="product-reviews__input-page" value="1" />
+                  <span id="product-reviews__spinner" class="hidden [&.htmx-request]:flex justify-center content-center p-10 pt-5">
+                    <svg class="fill-current animate-spin size-6 text-base-300" role="img" aria-hidden="true">
+                      <use xlink:href="/static/img/fontawesome-solid.svg#spinner" href="/static/img/fontawesome-solid.svg#spinner"></use>
+                    </svg>
+                  </span>
+                </div>
+                <input type="hidden" name="product_id" id="product-reviews__input-productid" value="{{ data.product.id }}" />
+              </div>
+            {% else %}
+              <div class="text-center mt-10 text-base-content/70">
+                <svg class="fill-current size-10 my-5 text-base-content/10 mx-auto" role="img" aria-hidden="true">
+                  <use xlink:href="/static/img/fontawesome-solid.svg#comments" href="/static/img/fontawesome-solid.svg#comments"></use>
+                </svg>
+                <p class="font-bold text-lg">Seja a primeira pessoa a avaliar este produto!</p>
+                <p class="text-sm mb-5">
+                  Sua avaliação vai ajudar muitas pessoas que desejam saber mais detalhes deste item.<br />
+                  Em 2 minutinhos você consegue descrever e mostrar fotos do produto!
+                </p>
+                <a href="/conta/pedido/listar" class="btn">Faça uma avaliação</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  {% if props.content == 'reviews' %}
+    {%- assign reviews = data.reviews.reviews -%}
+    {%- for review in reviews -%}
+      {%- assign review_client_name = review.client_name | default: 'Anônimo' -%}
+      <blockquote class="product-reviews__item p-5 rounded-box bg-base-100" data-avaliacao-id="{{ review.review_id }}">
+        <div class="product-reviews__section-item-content">
+          <div class="product-reviews__section-item-header">
+            <div class="float-right ml-3 mb-3 p-3 bg-base-200 rounded">
+              <svg class="fill-current size-4 text-base-300" role="img" aria-hidden="true">
+                <use xlink:href="/static/img/fontawesome-solid.svg#user" href="/static/img/fontawesome-solid.svg#user"></use>
+              </svg>
+            </div>
+            <div class="product-reviews__section-item-stars mb-1 flex items-center text-sm">
+              {% render 'partials/stars', rating: review.rating, size: 'xs' %}
+              {% comment %} <span class="product-reviews__section-item-stars-text ml-2.5 font-bold">{{ review.rating }} {{ review.rating | pluralize: 'Estrela', 'Estrelas' }}</span> {% endcomment %}
+            </div>
+            <div class="product-reviews__section-item-meta text-sm break-words text-base-content/70">
+              <span class="product-reviews__section-item-published">{{ review.created_at | date: "%d/%m/%Y" }}</span>
+              {% if review.variation %}
+                {% if review.variation contains '::' and review.variation contains 'Cor: ' %}
+                  <span class="product-reviews__section-item-variation"> - 
+                    {% assign variations = review.variation | split: ' - ' %}
+                    {% for review_variation in variations %}
+                      {% assign variation = review_variation | split: ': ' %}
+                      {% if variation.size == 2 %}
+                        {% assign variation_name = variation['0'] %}
+                        {% assign variation_value = variation['1'] %}
+                        {% assign variation_values = variation_value | split: '::' %}
+                        {% if variation_values.size == 2 %}
+                          {% assign variation_color = variation_values['0'] %}
+                          {% assign variation_color_name = variation_values['1'] %}
+                          {% if variation_color contains '|' %}
+                            {% assign variation_colors = variation_color | split: '|' %}
+                            {% assign variation_color_names = variation_color_name | split: '/' %}
+                            {% for variation_colors_unq in variation_colors %}
+                              {% assign variation_color_names_unq = variation_color_names[forloop.index0] %}
+                              {{ variation_name }}: <span class="product-reviews__section-item-variation-color inline-block size-4 align-text-top" style="background-color: {{ variation_colors_unq }};" title="{{ variation_color_names_unq }}"></span>
+                            {% endfor %}
+                          {% else %}
+                            {{ variation_name }}: <span class="product-reviews__section-item-variation-color inline-block size-4 align-text-top" style="background-color: {{ variation_color }};" title="{{ variation_color_name }}"></span>
+                          {% endif %}
+                        {% else %}
+                          {{ review_variation }}
+                        {% endif %}
+                      {% else %}
+                        {{ review_variation }}
+                      {% endif %}
+                      {% unless forloop.last %}
+                        {{ ' - ' }}
+                      {% endunless %}
+                    {% endfor %}
+                  </span>
+                {% else %}
+                  <span class="product-reviews__section-item-variation"> - <span>{{ review.variation }}</span></span>
+                {% endif %}
+              {% endif %}
+            </div>
+            <div class="product-reviews__section-item-author mt-2 font-bold text-base break-words">
+              <span>{{ review_client_name }}</span>
+            </div>
+          </div>
+          {% if review.title or review.description %}
+            <div class="product-reviews__section-item-details mt-1">
+              {% if review.title %}
+                <span class="product-reviews__section-item-title block mb-1 text-base font-bold whitespace-pre-line break-words">{{ review.title }}</span>
+              {% endif %}
+              {% if review.description %}
+                <p class="product-reviews__section-item-description text-sm whitespace-pre-line break-words">{{ review.description }}</p>
+              {% endif %}
+            </div>
+          {% endif %}
+          {% if review.images %}
+            <div class="product-reviews__section-item-images mt-5 flex flex-wrap items-center gap-2.5">
+              {% for image in review.images %}
+                {%- assign image_id = image | split: '/' | last | split: '.' | first | default: review.review_id -%}
+                {%- assign modal_id = 'review_image_modal_' | append: image_id -%}
+                {%- assign modal_image = ctx.static_domain | append: '/5000x5000' | append: image -%}
+                <a href="{{ modal_image }}" onclick="event.preventDefault();{{ modal_id }}.showModal()" target="_blank" class="product-reviews__section-item-images-link block transition-transform hover:scale-110">
+                  <img class="block max-w-16 max-h-16 rounded-lg" src="{{ ctx.static_domain }}/64x64{{ image }}" alt="Foto da avaliação enviada por {{ review_client_name }}" loading="lazy" />
+                </a>
+                {%- assign modal_image_alt = 'Foto grande da avaliação enviada por ' | append: review_client_name -%}
+                {% render 'partials/modal-image', modal_id: modal_id, modal_image: modal_image, modal_image_alt: modal_image_alt %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        {% if review.recommended == true or review.recommended == false %}
+          <div class="product-reviews__section-item-recommended recommended-{{ review.recommended | json }} mt-4">
+            <span class="badge {% if review.recommended == true %}badge-primary{% else %}badge-accent{% endif %}">
+              {% if review.recommended == true %}
+                Este cliente recomenda o produto
+              {% endif %}
+              {% if review.recommended == false %}
+                Este cliente não recomenda o produto
+              {% endif %}
+            </span>
+          </div>
+        {% endif %}
+        {% if review.reply %}
+          <div class="product-reviews__section-item-reply mt-5 p-1.5 pl-3 border-l-4 border-base-content/10">
+            <span class="product-reviews__section-item-reply-title block mb-2 text-base leading-4 font-bold whitespace-pre-line break-words">Resposta do vendedor:</span>
+            <p class="product-reviews__section-item-reply-description text-sm whitespace-pre-line break-words">{{ review.reply }}</p>
+          </div>
+        {% endif %}
+        <script type="application/ld+json">
+          {
+            "@context": "https://schema.org/",
+            "@type": "Review",
+            "itemReviewed": {
+              "@id": "#product_{{ data.product.id | default: ctx.url.querystring.product_id | default: 'unknown' }}"
+            },
+            "datePublished": "{{ review.created_at | date: "%Y-%m-%d" }}",
+            "reviewRating": {
+              "@type": "Rating",
+              "ratingValue": {{ review.rating }},
+              "bestRating": 5,
+              "worstRating": 1
+            },
+            "author": {
+              "@type": "Person",
+              "name": "{{ review_client_name }}"
+            },
+            {% if review.description -%}"reviewBody": "{{ review.description }}",{%- endif %}
+            {% if review.variation -%}"reviewAspect": "{{ review.variation }}",{%- endif %}
+            "url": "/avaliacoes/{{ review.review_id }}"
+          }
+        </script>
+      </blockquote>
+    {%- endfor -%}
+    <div id="product-reviews__pagination" class="mt-5 text-center group">
+      {% if data.reviews.next_page %}
+        <input type="hidden" name="page" id="product-reviews__input-page" value="{{ data.reviews.next_page }}" />
+        <button class="btn btn-secondary relative" type="button" onclick="htmx.trigger('#product-reviews__section', 'product-reviews__act-load-more')">
+          Mostrar mais avaliações
+          <span id="product-reviews__spinner" class="hidden [&.htmx-request]:flex absolute inset-0 size-full flex-wrap justify-center content-center bg-base-100/50 rounded-field">
+            <svg class="fill-current animate-spin size-4" role="img" aria-hidden="true">
+              <use xlink:href="/static/img/fontawesome-solid.svg#spinner" href="/static/img/fontawesome-solid.svg#spinner"></use>
+            </svg>
+          </span>
+        </button>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endif %}

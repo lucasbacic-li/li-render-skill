@@ -1,0 +1,44 @@
+{% assign product = data.product %}
+{% assign selected_sku = product.selected_sku %}
+{% assign has_variations = product.options.size > 0 %}
+{% assign is_upon_request = selected_sku.price.upon_request %}
+
+{%- comment -%} Não renderiza floating buy button para produtos com preço sob consulta {%- endcomment -%}
+{% unless is_upon_request %}
+  <!-- Floating Buy Button -->
+  <div
+    id="floating-buy-button"
+    class="fixed bottom-5 left-0 right-0 z-20 w-[calc(100%-2rem)] mx-auto translate-y-full pointer-events-none opacity-0 floating-bar-style md:hidden"
+    data-has-variations="{{ has_variations }}"
+  >
+    <div class="container mx-auto px-3 py-2.5">
+      {% if has_variations %}
+        <button
+          type="button"
+          class="btn btn-block btn-primary btn-lg"
+          onclick="document.getElementById('floating-buy-sheet').classList.add('active')"
+        >
+          Adicionar ao carrinho
+          <svg class="text-primary" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 12C0 5.37258 5.37258 0 12 0C18.6274 0 24 5.37258 24 12C24 18.6274 18.6274 24 12 24C5.37258 24 0 18.6274 0 12Z" fill="white"/>
+            <mask id="mask0_541_8703" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+              <rect width="24" height="24" fill="#D9D9D9"/>
+            </mask>
+            <g mask="url(#mask0_541_8703)">
+              <path d="M13.625 17L12.4875 15.7917L15.3719 12.8333H5.5V11.1667H15.3719L12.4875 8.20833L13.625 7L18.5 12L13.625 17Z" fill="currentColor"/>
+            </g>
+          </svg>
+        </button>
+      {% else %}
+        {% render 'pages/product/components/buy-button/index', selected_sku: selected_sku, is_floating: true %}
+      {% endif %}
+    </div>
+  </div>
+  {% if has_variations %}
+    {% render 'pages/product/components/floating-buy-button/drawer' %}
+  {% endif %}
+
+  <floating-buy-button></floating-buy-button>
+  <script defer src="{% asset_url '/scripts/floating-buy-button.webc.js' %}"></script>
+{% endunless %}
+

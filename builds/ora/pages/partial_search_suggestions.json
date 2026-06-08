@@ -1,0 +1,18 @@
+{
+  "$schema": "https://cdn.awsli.com.br/public/render/schema/v1.json",
+  "partial": {
+    "path": "/partial/search/suggestions",
+    "components": [
+      {
+        "type": "template",
+        "template": "shared/components/header/components/search/autocomplete/index.liquid"
+      }
+    ]
+  },
+  "_version": "3",
+  "global_data": {
+    "autocomplete_result": {
+      "function": "search_suggestions"
+    }
+  }
+}

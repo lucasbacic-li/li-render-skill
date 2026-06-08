@@ -1,0 +1,59 @@
+{%- assign banners_slice = banners -%}
+{%- assign banners_count = banners | size -%}
+{%- assign half = banners_count | plus: 1 | divided_by: 2 -%}
+{%- if splitted == "odd" -%}
+  {%- assign banners_slice = banners | slice: 0, half -%}
+{%- elsif splitted == "even" -%}
+  {%- assign range_end = banners_count | minus: half -%}
+  {%- assign banners_slice = banners | slice: half, range_end -%}
+{%- endif -%}
+
+<div class="container py-4 space-y-4 content-auto-[300px]">
+  {% for banner in banners_slice %}
+    {% if banner %}
+      <div class="w-full">
+        {% if banner.url and banner.url contains '/' %}
+          <a href="{{ banner.url }}" target="{{ banner.target | default:'_self' }}" class="block">
+        {% endif %}
+          <picture class="block rounded-box relative">
+            {% assign image_mobile = banner.image_mobile %}
+            {% if image_mobile %}
+              <source
+                media="(max-width:767px)"
+                srcset="{{ ctx.static_domain }}/768x1000{{ image_mobile }} 768w,
+                        {{ ctx.static_domain }}/540x1000{{ image_mobile }} 540w,
+                        {{ ctx.static_domain }}/412x1000{{ image_mobile }} 412w,
+                        {{ ctx.static_domain }}/360x1000{{ image_mobile }} 360w,
+                        {{ ctx.static_domain }}/320x1000{{ image_mobile }} 320w"
+                sizes="100vw"
+                width="{{ banner.width_mobile | default: 767 }}"
+                height="{{ banner.height_mobile | default: 767 }}"
+              />
+            {% endif %}
+            <img
+              src="{{ ctx.static_domain }}/1280x800{{ banner.image }}"
+              srcset="{{ ctx.static_domain }}/320x800{{ banner.image }} 320w,
+                      {{ ctx.static_domain }}/412x800{{ banner.image }} 412w,
+                      {{ ctx.static_domain }}/768x800{{ banner.image }} 768w,
+                      {{ ctx.static_domain }}/1280x800{{ banner.image }} 1280w,
+                      {{ ctx.static_domain }}/1920x800{{ banner.image }} 1920w"
+              sizes="100vw"
+              alt="{{ banner.alt }}"
+              width="{{ banner.width | default: 1280 }}"
+              height="{{ banner.height | default: 800 }}"
+              class="block mx-auto"
+              loading="lazy"
+            />
+            {% if banner.title %}
+              <span class="absolute inset-0 flex flex-col gap-4 items-start justify-end pb-6 px-6">
+                <h3 class="text-2xl font-medium text-base-100 mix-blend-difference">{{ banner.title }}</h3>
+              </span>
+            {% endif %}
+          </picture>
+        {% if banner.url and banner.url contains '/' %}
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>

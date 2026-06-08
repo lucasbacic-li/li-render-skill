@@ -1,0 +1,44 @@
+<div class="container py-4 space-y-4 content-auto-[100px]">
+  {% for banner in banners %}
+    {% if banner %}
+      <div class="w-full">
+        {% if banner.url and banner.url contains '/' %}
+          <a href="{{ banner.url }}" target="{{ banner.target | default:'_self' }}" class="block">
+        {% endif %}
+          <picture class="block rounded-box relative">
+            {% assign image_mobile = banner.image_mobile %}
+            {% if image_mobile %}
+              <source
+                media="(max-width:767px)"
+                srcset="{{ ctx.static_domain }}/768x200{{ image_mobile }} 768w,
+                        {{ ctx.static_domain }}/540x200{{ image_mobile }} 540w,
+                        {{ ctx.static_domain }}/412x200{{ image_mobile }} 412w,
+                        {{ ctx.static_domain }}/360x200{{ image_mobile }} 360w,
+                        {{ ctx.static_domain }}/320x200{{ image_mobile }} 320w"
+                sizes="100vw"
+                width="{{ banner.width_mobile | default: 767 }}"
+                height="{{ banner.height_mobile | default: 200 }}"
+              />
+            {% endif %}
+            <img
+              src="{{ ctx.static_domain }}/1280x200{{ banner.image }}"
+              srcset="{{ ctx.static_domain }}/320x200{{ banner.image }} 320w,
+                      {{ ctx.static_domain }}/412x200{{ banner.image }} 412w,
+                      {{ ctx.static_domain }}/768x200{{ banner.image }} 768w,
+                      {{ ctx.static_domain }}/1280x200{{ banner.image }} 1280w,
+                      {{ ctx.static_domain }}/1920x200{{ banner.image }} 1920w"
+              sizes="100vw"
+              alt="{{ banner.alt }}"
+              width="{{ banner.width | default: 1280 }}"
+              height="{{ banner.height | default: 200 }}"
+              class="block mx-auto"
+              loading="lazy"
+            />
+          </picture>
+        {% if banner.url and banner.url contains '/' %}
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>

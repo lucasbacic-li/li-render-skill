@@ -1,0 +1,13 @@
+{
+  "$schema": "https://cdn.awsli.com.br/public/render/schema/v1.json",
+  "partial": {
+    "path": "/partial/product/payments",
+    "components": [
+      {
+        "type": "template",
+        "template": "pages/product/components/payments-modal/index.liquid"
+      }
+    ]
+  },
+  "_version": "3"
+}

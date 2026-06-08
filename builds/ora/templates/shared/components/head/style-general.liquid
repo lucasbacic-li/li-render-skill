@@ -1,0 +1,109 @@
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link 
+  href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" 
+  rel="stylesheet" 
+  media="print" 
+  onload="this.media='all'"
+>
+<noscript>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+</noscript>
+
+{%- comment -%} Ícones da marca: Material Symbols Sharp (style sharp, optical 40px) {%- endcomment -%}
+<link
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@40,400,0,0&display=block"
+  rel="stylesheet"
+  media="print"
+  onload="this.media='all'"
+>
+<noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@40,400,0,0&display=block" rel="stylesheet">
+</noscript>
+
+<style id="custom-theme-style">
+  :root {
+    {%- if layout_attributes.render.style.color_base_100 -%}
+      --color-base-100: {{ layout_attributes.render.style.color_base_100 }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_base_200 -%}
+      --color-base-200: {{ layout_attributes.render.style.color_base_200 }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_base_300 -%}
+      --color-base-300: {{ layout_attributes.render.style.color_base_300 }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_base_content -%}
+      --color-base-content: {{ layout_attributes.render.style.color_base_content }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_primary -%}
+      --color-primary: {{ layout_attributes.render.style.color_primary }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_primary_content -%}
+      --color-primary-content: {{ layout_attributes.render.style.color_primary_content }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_secondary -%}
+      --color-secondary: {{ layout_attributes.render.style.color_secondary }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_secondary_content -%}
+      --color-secondary-content: {{ layout_attributes.render.style.color_secondary_content }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_accent -%}
+      --color-accent: {{ layout_attributes.render.style.color_accent }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_accent_content -%}
+      --color-accent-content: {{ layout_attributes.render.style.color_accent_content }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_neutral -%}
+      --color-neutral: {{ layout_attributes.render.style.color_neutral }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_neutral_content -%}
+      --color-neutral-content: {{ layout_attributes.render.style.color_neutral_content }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_info -%}
+      --color-info: {{ layout_attributes.render.style.color_info }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_info_content -%}
+      --color-info-content: {{ layout_attributes.render.style.color_info_content }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_success -%}
+      --color-success: {{ layout_attributes.render.style.color_success }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_success_content -%}
+      --color-success-content: {{ layout_attributes.render.style.color_success_content }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_warning -%}
+      --color-warning: {{ layout_attributes.render.style.color_warning }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_warning_content -%}
+      --color-warning-content: {{ layout_attributes.render.style.color_warning_content }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_error -%}
+      --color-error: {{ layout_attributes.render.style.color_error }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.color_error_content -%}
+      --color-error-content: {{ layout_attributes.render.style.color_error_content }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.radius_selector -%}
+      --radius-selector: {{ layout_attributes.render.style.radius_selector }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.radius_field -%}
+      --radius-field: {{ layout_attributes.render.style.radius_field }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.radius_box -%}
+      --radius-box: {{ layout_attributes.render.style.radius_box }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.border -%}
+      --border: {{ layout_attributes.render.style.border }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.depth -%}
+      --depth: {{ layout_attributes.render.style.depth }};
+    {%- endif -%}
+    {%- if layout_attributes.render.style.noise -%}
+      --noise: {{ layout_attributes.render.style.noise }};
+    {%- endif -%}
+  }
+</style>
+
+{% assign css_theme = '/style/theme.min.css' %}
+<link rel="preload" href="{% asset_url css_theme %}" as="style" fetchpriority="high">
+<link rel="stylesheet" href="{% asset_url css_theme %}" fetchpriority="high">

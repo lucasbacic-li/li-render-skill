@@ -1,0 +1,34 @@
+{%- comment -%}
+  Drawer de zoom que abre de baixo para cima
+  Mostra todas as imagens do produto em alta resolução com scroll vertical
+  Usa: data.product
+{%- endcomment -%}
+
+{% assign product_images = data.product.images %}
+
+<product-zoom-drawer id="product-zoom-drawer" class="product-zoom-drawer">
+  <div class="product-zoom-overlay" data-close></div>
+  
+  <div class="product-zoom-content">
+    <div class="product-zoom-scroll">
+      {% for image in product_images %}
+        <img 
+          src="{{ ctx.static_domain }}/2000x2000{{ image.path }}"
+          alt="{{ image.alt | default: data.product.name }}"
+          width="2000"
+          height="2000"
+          srcset="{{ ctx.static_domain }}/1000x1000{{ image.path }} 1000w,
+                  {{ ctx.static_domain }}/1500x1500{{ image.path }} 1500w,
+                  {{ ctx.static_domain }}/2000x2000{{ image.path }} 2000w,
+                  {{ ctx.static_domain }}/2500x2500{{ image.path }} 2500w,
+                  {{ ctx.static_domain }}/3000x3000{{ image.path }} 3000w"
+          sizes="100vw"
+          class="w-full h-auto rounded-lg"
+          loading="lazy"
+        />
+      {% endfor %}
+    </div>
+  </div>
+</product-zoom-drawer>
+
+<script defer src="{% asset_url '/scripts/product-zoom-drawer.webc.js' %}"></script>
