@@ -1209,3 +1209,66 @@ product-card:hover .ora-card__photo--swap{opacity:0;transform:scale(.97);}
 h1, h2, h3, h4, h5, h6 { color: var(--ora-espresso); }
 /* Dados fortes que devem permanecer espresso mesmo em corpo de texto */
 .font-bold, .ora-card__name, .ora-card__price { color: var(--ora-espresso); }
+
+/* ============================================================
+   Home — seções editoriais portadas do index.html (editorial,
+   comunidade, categorias). CSS só de LAYOUT; tipo/cor/CTA vêm do
+   sistema global (.ora-serif/.ora-grotesk/.ora-eyebrow, tokens).
+   ============================================================ */
+
+/* EDITORIAL — split foto | texto */
+.ora-editorial{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--ora-line-2);}
+.ora-editorial__media{min-height:82svh;overflow:hidden;background:var(--ora-areia);border-right:1px solid var(--ora-line-2);}
+.ora-editorial__media img{width:100%;height:100%;object-fit:cover;display:block;}
+.ora-editorial__text{display:flex;flex-direction:column;justify-content:center;gap:clamp(20px,3vw,40px);padding:var(--ora-section-y) var(--ora-gutter);}
+.ora-editorial__statement{display:grid;}
+.ora-editorial__statement .ora-serif,.ora-editorial__statement .ora-grotesk{font-size:clamp(2.4rem,4.4vw,3.625rem);line-height:1.02;letter-spacing:-.02em;}
+.ora-editorial__statement .ora-grotesk{font-weight:400;}
+.ora-editorial__text p{max-width:44ch;line-height:1.7;font-size:.92rem;}
+@media(max-width:900px){
+  .ora-editorial{grid-template-columns:1fr;}
+  .ora-editorial__media{min-height:60svh;border-right:0;border-bottom:1px solid var(--ora-line-2);}
+}
+
+/* COMUNIDADE — Você + Ora (UGC) */
+.ora-community{border-top:1px solid var(--ora-line-2);}
+.ora-community__inner{display:flex;align-items:center;gap:clamp(32px,4vw,56px);padding-block:clamp(56px,8vw,96px);}
+.ora-community__head{flex-shrink:0;width:300px;display:flex;flex-direction:column;gap:20px;}
+.ora-community__title{display:grid;}
+.ora-community__title .ora-serif,.ora-community__title .ora-grotesk{font-size:clamp(2.4rem,3.6vw,3.25rem);}
+.ora-community__title .ora-grotesk{letter-spacing:-.01em;font-weight:400;}
+.ora-community__lead{font-size:.88rem;line-height:1.7;max-width:280px;}
+.ora-community__track{display:flex;flex:1;gap:20px;min-width:0;}
+.ora-ugc{flex:1;min-width:0;background:var(--ora-linho);border:1px solid var(--ora-line-2);overflow:hidden;display:flex;flex-direction:column;}
+.ora-ugc__media{position:relative;aspect-ratio:5/6;overflow:hidden;}
+.ora-ugc__media img{width:100%;height:100%;object-fit:cover;}
+.ora-ugc__scrim{position:absolute;inset:0 0 auto 0;height:120px;background:linear-gradient(180deg,color-mix(in srgb,var(--ora-espresso) 50%,transparent),transparent);}
+.ora-ugc__cred{position:absolute;top:14px;left:14px;right:14px;z-index:2;display:flex;align-items:center;gap:10px;color:var(--ora-linho);}
+.ora-ugc__avatar{flex-shrink:0;width:38px;height:38px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--ora-uva),var(--ora-tangerina));}
+.ora-ugc__avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid var(--ora-linho);}
+.ora-ugc__handle{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.ora-ugc__handle b{font-family:var(--ora-font-mono);font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:.69rem;}
+.ora-ugc__handle span{font-family:var(--ora-font-mono);font-size:.62rem;letter-spacing:.04em;opacity:.82;}
+.ora-ugc__buy{display:flex;align-items:center;gap:12px;padding:16px;border-top:1px solid var(--ora-line-2);background:var(--ora-color-base-100,#fbf8f0);}
+.ora-ugc__thumb{flex-shrink:0;width:46px;display:grid;place-content:center;}
+.ora-ugc__thumb img{max-height:34px;width:auto;object-fit:contain;}
+.ora-ugc__prod{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.ora-ugc__prod b{font-family:var(--ora-font-grotesk);font-weight:500;text-transform:uppercase;letter-spacing:.02em;font-size:.8rem;color:var(--ora-espresso);}
+.ora-ugc__prod span{font-size:.68rem;letter-spacing:.02em;}
+@media(max-width:1100px){ .ora-community__inner{flex-direction:column;align-items:stretch;} .ora-community__head{width:auto;} }
+@media(max-width:640px){ .ora-community__track{flex-wrap:wrap;} .ora-ugc{flex:1 1 100%;} }
+
+/* CATEGORIAS — navegador sobre foto */
+.ora-browser{position:relative;border-top:1px solid var(--ora-line-2);overflow:hidden;}
+.ora-browser__photo{display:block;width:100%;height:80svh;min-height:520px;object-fit:cover;background:var(--ora-areia);border-bottom:1px solid var(--ora-line-2);}
+.ora-browser__scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,color-mix(in srgb,var(--ora-espresso) 62%,transparent) 0%,transparent 58%),linear-gradient(270deg,color-mix(in srgb,var(--ora-espresso) 42%,transparent) 0%,transparent 60%);}
+.ora-browser__overlay{position:absolute;inset:auto 0 0 0;}
+.ora-browser__inner{display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(24px,4vw,64px);padding-bottom:clamp(40px,6vw,64px);flex-wrap:wrap;}
+.ora-browser__headline{max-width:520px;color:var(--ora-linho);font-family:var(--ora-font-serif);letter-spacing:-.02em;font-size:clamp(2rem,3.6vw,2.875rem);line-height:1.06;}
+.ora-cats{width:min(560px,100%);}
+.ora-cats__eyebrow{color:var(--ora-linho);display:block;padding-bottom:16px;}
+.ora-cat{display:flex;align-items:baseline;gap:18px;padding:18px 0;border-bottom:1px solid var(--ora-line-2);color:var(--ora-linho);transition:padding-left .25s ease;}
+.ora-cat:hover{padding-left:10px;}
+.ora-cat__n{font-family:var(--ora-font-mono);font-size:.72rem;color:color-mix(in srgb,var(--ora-linho) 70%,transparent);}
+.ora-cat__name{font-family:var(--ora-font-grotesk);font-weight:500;letter-spacing:-.01em;text-transform:none;font-size:clamp(1.1rem,1.7vw,1.5rem);line-height:1.25;}
+@media(max-width:900px){ .ora-browser__photo{height:auto;min-height:0;aspect-ratio:3/4;} .ora-browser__inner{flex-direction:column;align-items:stretch;gap:24px;} }
