@@ -54,7 +54,7 @@
   --color-base-100: #fbf8f0;           /* branco-quente — superfícies/cards */
   --color-base-200: #eae1d1;           /* areia clara — bordas/fundos sutis */
   --color-base-300: #dac2ae;           /* areia — bordas mais fortes */
-  --color-base-content: #775546;       /* noz — TEXTO DE CORPO (mais claro). Títulos forçados a espresso abaixo. */
+  --color-base-content: #A38372;       /* argila — TEXTO DE CORPO. Títulos/dados forçados a espresso abaixo. */
   --color-primary: #321506;            /* espresso — ações/ênfase (contraste no linho) */
   --color-primary-content: #f4f0e5;    /* linho */
   --color-secondary: #775546;          /* noz */
@@ -81,28 +81,10 @@
   --noise: 1;
 }
 
-/* Ora — fontes da marca (arquivos em ../fonts, servidos via theme_assets) */
-@font-face {
-  font-family: "Lusitana";
-  src: url("../fonts/Lusitana/Lusitana-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Host Grotesk";
-  src: url("../fonts/HostGrotesk/HostGrotesk-VariableFont_wght.ttf") format("truetype-variations");
-  font-weight: 300 800;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Geist Mono";
-  src: url("../fonts/GeistMono/GeistMono-VariableFont_wght.ttf") format("truetype-variations");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
+/* Fontes da marca (Lusitana / Host Grotesk / Geist Mono) são carregadas via
+   Google Fonts no <head> (templates/shared/components/head/style-general.liquid),
+   não por @font-face aqui: theme.css é asset estático e url(../fonts/…) relativa
+   dribla o {% asset_url %} assinado → 404 no CDN. Ver style-general.liquid. */
 
 body {
   background-color: var(--color-neutral);
@@ -628,9 +610,12 @@ body {
   --ora-font-mono:"Geist Mono",ui-monospace,monospace;
   --ora-ink:var(--ora-espresso); --ora-bg:var(--ora-linho); --ora-muted:var(--ora-noz);
   --ora-line-2:var(--ora-argila);
+  /* altura real do menu (.ora-header__row) — global p/ offsets de sticky fora do hero (ex.: rail da PDP) */
+  --ora-headbar-h:calc(2 * clamp(14px,1.6vw,20px) + clamp(26px,2.4vw,40px) + 1px);
   --ora-gutter:clamp(20px,5vw,72px);
   --ora-container-max:200rem;            /* régua universal (≈3200px) — bem fluido */
   --ora-section-y:clamp(64px,9vw,132px);
+  --ora-section-h:min(78svh, 700px);   /* altura das seções (editorial/browser): ~78% da tela, capado em 700px p/ não esticar em telas altas */
   /* ESCALA MONO-CAPS — fonte da verdade dos "chapéus", labels e links caps.
      2 degraus + tracking único. Todo papel mono-caps puxa daqui em vez de
      inventar par tamanho/tracking (antes: .6–.875rem × .02–.16em soltos). */
@@ -639,7 +624,11 @@ body {
   --ora-tracking-caps:.12em;   /* tracking ÚNICO p/ todo caps */
   /* Título de seção — UM clamp canônico (banner/shelf/h2 herdam daqui). */
   --ora-section-head:clamp(1.3rem,2.4vw,2rem);
-  --ora-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Grão: feTurbulence dessaturado + contraste esticado + alpha opaco → ruído
+     monocromático de alto contraste. Intensidade controlada SÓ pela opacidade do
+     consumidor; pensado p/ mix-blend-mode:overlay (lê em fundo claro, simétrico).
+     100% só-CSS: zero script, zero request (data-URI inline). */
+  --ora-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.2' intercept='-0.6'/%3E%3CfeFuncG type='linear' slope='2.2' intercept='-0.6'/%3E%3CfeFuncB type='linear' slope='2.2' intercept='-0.6'/%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --ora-grad-amanhecer:linear-gradient(180deg,var(--ora-anil) 0%,var(--ora-azul-gelo) 26%,var(--ora-areia) 60%,var(--ora-linho) 100%);
   --ora-grad-anoitecer:linear-gradient(180deg,var(--ora-linho) 0%,var(--ora-lilas) 34%,var(--ora-uva) 58%,var(--ora-tangerina) 88%,var(--ora-damasco) 100%);
 }
@@ -707,7 +696,11 @@ body {
 .ora-hero__mbar{display:none;}                       /* barra título+"+": só mobile */
 .ora-hero__rows{display:flex;flex-direction:column;gap:16px;}  /* desktop: lista vertical */
 .ora-hero__navrow{position:relative;display:flex;align-items:baseline;gap:18px;width:100%;
-  padding-block:18px;background:transparent;border:0;cursor:pointer;text-align:left;}
+  padding-block:18px;background:transparent;border:0;cursor:pointer;text-align:left;
+  transition:padding-left .25s ease;}
+/* hover desktop = mesma animação das categorias (.ora-cat): desliza ~10px à direita.
+   A pista é absolute/left:0 (relativa à padding box), então só nº+título deslizam. */
+@media (hover:hover){ .ora-hero__navrow:hover{padding-left:10px;} }
 .ora-hero__navnum{flex:0 0 auto;align-self:flex-start;font-family:var(--ora-font-mono);
   font-size:12px;line-height:16px;color:color-mix(in srgb,var(--ora-argila) 80%,transparent);transition:color .3s;}
 .ora-hero__navtitle{font-family:var(--ora-font-grotesk);font-weight:500;text-transform:none;
@@ -766,7 +759,7 @@ body {
   background:var(--ora-grad-amanhecer);
   padding-block:var(--ora-section-y) calc(var(--ora-section-y)*1.1);}
 .ora-daybreak__grain{position:absolute;inset:0;z-index:-1;pointer-events:none;
-  background-image:var(--ora-grain);background-size:180px 180px;opacity:.28;mix-blend-mode:soft-light;
+  background-image:var(--ora-grain);background-size:180px 180px;opacity:.4;mix-blend-mode:overlay;
   -webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 85%);mask-image:linear-gradient(180deg,#000 0%,transparent 85%);}
 .ora-daybreak__inner{display:flex;flex-direction:column;align-items:center;gap:clamp(24px,4vw,40px);max-width:60rem;margin:0 auto;}
 .ora-daybreak__statement{display:grid;gap:.04em;font-size:clamp(2.2rem,5vw,3.75rem);}
@@ -833,7 +826,7 @@ body {
     var(--ora-linho) 0%, var(--ora-lilas) 55%, var(--ora-uva) 72%,
     var(--ora-tangerina) 90%, var(--ora-damasco) 100%);}
 .ora-footer::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
-  background-image:var(--ora-grain);background-size:180px 180px;opacity:.22;mix-blend-mode:soft-light;}
+  background-image:var(--ora-grain);background-size:180px 180px;opacity:.3;mix-blend-mode:overlay;}
 .ora-footer>*{position:relative;z-index:1;}
 
 /* faixas em grid de 3 colunas iguais — colunas alinham entre as faixas */
@@ -972,6 +965,11 @@ product-card:hover .ora-card__photo--swap{opacity:0;transform:scale(.97);}
 /* Vitrine da home (grid-snap): desktop = 4 fixos em grid (sem slider);
    mobile = scroll-snap nativo (swipe + peek), sem embla/JS. Full-bleed: cresce
    com o gutter (sem max-width). Breakpoint de grid no lg (1024px). */
+/* Seção da página: border-top full-bleed (grid aparente). Padding vertical:
+   teto 72px no desktop (= gutter lateral, mesma curva 5vw → proporcional) e
+   piso 56px no mobile (= padding do "nossa comunidade"; o gutter de 20px deixava
+   o respiro vertical apertado no estreito). */
+.ora-shelf{border-top:1px solid var(--ora-line-2);padding-block:clamp(56px,5vw,72px);}
 .ora-shelf__title{padding-inline:var(--ora-gutter);}
 .ora-shelf__grid{
   display:flex;gap:1.5rem;overflow-x:auto;
@@ -1246,8 +1244,8 @@ h1, h2, h3, h4, h5, h6 { color: var(--ora-espresso); }
    ============================================================ */
 
 /* EDITORIAL — split foto | texto */
-.ora-editorial{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--ora-line-2);}
-.ora-editorial__media{min-height:82svh;overflow:hidden;background:var(--ora-areia);border-right:1px solid var(--ora-line-2);}
+.ora-editorial{display:grid;grid-template-columns:1fr 1fr;height:var(--ora-section-h);border-top:1px solid var(--ora-line-2);}
+.ora-editorial__media{overflow:hidden;background:var(--ora-areia);border-right:1px solid var(--ora-line-2);}
 .ora-editorial__media img{width:100%;height:100%;object-fit:cover;display:block;}
 .ora-editorial__text{display:flex;flex-direction:column;justify-content:center;gap:clamp(20px,3vw,40px);padding:var(--ora-section-y) var(--ora-gutter);}
 .ora-editorial__statement{display:grid;}
@@ -1255,8 +1253,8 @@ h1, h2, h3, h4, h5, h6 { color: var(--ora-espresso); }
 .ora-editorial__statement .ora-grotesk{font-weight:400;}
 .ora-editorial__text p{max-width:44ch;line-height:1.7;font-size:.92rem;}
 @media(max-width:900px){
-  .ora-editorial{grid-template-columns:1fr;}
-  .ora-editorial__media{min-height:60svh;border-right:0;border-bottom:1px solid var(--ora-line-2);}
+  .ora-editorial{grid-template-columns:1fr;height:auto;}
+  .ora-editorial__media{height:60svh;border-right:0;border-bottom:1px solid var(--ora-line-2);}
 }
 
 /* COMUNIDADE — Você + Ora (UGC) */
@@ -1276,7 +1274,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--ora-espresso); }
 .ora-ugc__avatar{flex-shrink:0;width:38px;height:38px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--ora-uva),var(--ora-tangerina));}
 .ora-ugc__avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid var(--ora-linho);}
 .ora-ugc__handle{display:flex;flex-direction:column;gap:2px;min-width:0;}
-.ora-ugc__handle b{font-family:var(--ora-font-mono);font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:.69rem;}
+.ora-ugc__handle b{font-family:var(--ora-font-mono);font-weight:600;text-transform:uppercase;letter-spacing:var(--ora-tracking-caps);font-size:var(--ora-caps);}
 .ora-ugc__handle span{font-family:var(--ora-font-mono);font-size:.62rem;letter-spacing:.04em;opacity:.82;}
 .ora-ugc__buy{display:flex;align-items:center;gap:12px;padding:16px;border-top:1px solid var(--ora-line-2);background:var(--ora-color-base-100,#fbf8f0);}
 .ora-ugc__thumb{flex-shrink:0;width:46px;display:grid;place-content:center;}
@@ -1289,15 +1287,152 @@ h1, h2, h3, h4, h5, h6 { color: var(--ora-espresso); }
 
 /* CATEGORIAS — navegador sobre foto */
 .ora-browser{position:relative;border-top:1px solid var(--ora-line-2);overflow:hidden;}
-.ora-browser__photo{display:block;width:100%;height:80svh;min-height:520px;object-fit:cover;background:var(--ora-areia);border-bottom:1px solid var(--ora-line-2);}
+.ora-browser__photo{display:block;width:100%;height:var(--ora-section-h);min-height:440px;object-fit:cover;background:var(--ora-areia);border-bottom:1px solid var(--ora-line-2);}
 .ora-browser__scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,color-mix(in srgb,var(--ora-espresso) 62%,transparent) 0%,transparent 58%),linear-gradient(270deg,color-mix(in srgb,var(--ora-espresso) 42%,transparent) 0%,transparent 60%);}
 .ora-browser__overlay{position:absolute;inset:auto 0 0 0;}
 .ora-browser__inner{display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(24px,4vw,64px);padding-bottom:clamp(40px,6vw,64px);flex-wrap:wrap;}
-.ora-browser__headline{max-width:520px;color:var(--ora-linho);font-family:var(--ora-font-serif);letter-spacing:-.02em;font-size:clamp(2rem,3.6vw,2.875rem);line-height:1.06;}
-.ora-cats{width:min(560px,100%);}
+.ora-browser__headline{max-width:520px;color:var(--ora-linho);font-family:var(--ora-font-serif);text-transform:none;letter-spacing:-.02em;font-size:clamp(2rem,3.6vw,2.875rem);line-height:1.06;}
+.ora-cats{width:50%;}   /* desktop: metade do container (gutter já respeitado pelo .container) */
 .ora-cats__eyebrow{color:var(--ora-linho);display:block;padding-bottom:16px;}
 .ora-cat{display:flex;align-items:baseline;gap:18px;padding:18px 0;border-bottom:1px solid var(--ora-line-2);color:var(--ora-linho);transition:padding-left .25s ease;}
 .ora-cat:hover{padding-left:10px;}
 .ora-cat__n{font-family:var(--ora-font-mono);font-size:.72rem;color:color-mix(in srgb,var(--ora-linho) 70%,transparent);}
 .ora-cat__name{font-family:var(--ora-font-grotesk);font-weight:500;letter-spacing:-.01em;text-transform:none;font-size:clamp(1.1rem,1.7vw,1.5rem);line-height:1.25;}
-@media(max-width:900px){ .ora-browser__photo{height:auto;min-height:0;aspect-ratio:3/4;} .ora-browser__inner{flex-direction:column;align-items:stretch;gap:24px;} }
+@media(max-width:900px){ .ora-browser__photo{height:auto;min-height:0;aspect-ratio:3/4;} .ora-browser__inner{flex-direction:column;align-items:stretch;gap:24px;} .ora-cats{width:100%;} }
+
+/* ============================================================
+   PDP — Grade aparente (ref. footer/home/minicart). Desktop:
+   coluna de FOTOS empilhadas (esquerda) | rail de DECISÃO fixo
+   (direita), separados por uma linha de grid. Faixa de CONTEÚDO
+   full-width abaixo, com acordeões acentuados pela mesma estética.
+   Mobile inalterado: carousel de fotos (embla) + floating buy button
+   — o stack/divisórias são só ≥md (data-disable-from="md" desliga
+   o embla no desktop p/ as fotos fluírem empilhadas).
+   ============================================================ */
+
+/* Fotos empilhadas — só desktop. Células de grid com hairline
+   compartilhada (como .ora-footer__cell / .ora-editorial). */
+@media (min-width:768px){
+  .product-images-carousel .embla__container{ gap:0; }
+  .product-images-carousel .embla__slide{ width:100%; border-top:1px solid var(--ora-line-2); }
+  .product-images-carousel .embla__slide:first-child{ border-top:0; }
+  .product-images-carousel .embla__slide img{ border-radius:0; height:auto; }
+}
+
+/* Favoritar no rail: porte grande (ref. Paper, 40px) sobre o título.
+   O swap global de ícones troca o <svg> por um span Material. */
+.ora-pdp-rail product-favorites svg{ width:36px; height:36px; }
+.ora-pdp-rail product-favorites .material-symbols-sharp{ font-size:40px; }
+
+/* CTA "Adicionar ao carrinho": usa o .btn.btn-primary GLOBAL, que já é a barra
+   lilás + label + caixa espresso 1:1 com seta (::after, ref. Paper). Nada de
+   classe própria aqui — markup era duplicar a seta. */
+
+/* Linha de preço — responsiva por CONTAINER (largura do RAIL, não da viewport):
+   o md:/lg: por viewport falhava no tablet (rail = 50% da tela fica estreito e a
+   parcela quebra palavra-a-palavra). #product-summary é o container; abaixo de
+   ~30rem de rail empilha em 3 linhas, acima vira 3 colunas. Resolve tablet/mobile/
+   desktop de uma vez (e sobrevive ao swap outerHTML do seletor de SKU). */
+#product-summary{ container-type:inline-size; container-name:pdp-summary; }
+@container pdp-summary (min-width:30rem){
+  .ora-pdp-pricerow{ flex-direction:row; align-items:stretch; }
+  .ora-pdp-pricerow__price{ flex-shrink:0; padding:24px 32px; }
+  .ora-pdp-pricerow__inst{
+    flex:1; flex-direction:column; justify-content:center; text-align:center;
+    padding:12px 24px; border-top:0; border-left:1px solid var(--ora-line-2);
+  }
+  .ora-pdp-pricerow__pay{
+    justify-content:center; padding:24px 32px;
+    border-top:0; border-left:1px solid var(--ora-line-2);
+  }
+}
+
+/* Recomendados da PDP: padroniza o padding-block da SEÇÃO com a vitrine da home
+   (.ora-shelf) — o shelf carousel trazia só py-4 (16px, curto). O `.container`
+   interno tem o py-4 zerado p/ não somar; a seção controla via clamp da vitrine. */
+.ora-pdp-recos{ padding-block:clamp(56px,5vw,72px); }
+.ora-pdp-recos .container{ padding-block:0; }
+/* Mobile: filete full-width marcando a divisão da prateleira (ref. Paper 4VP-0).
+   Só no mobile — no desktop a seção já é fechada pela grade do produto acima. */
+@media (max-width:767px){ .ora-pdp-recos{ border-top:1px solid var(--ora-line-2); } }
+
+/* Opções de variação (P/M/G) — MESMO estilo do CTA secundário "Calcular frete":
+   transparente, borda argila/50%, mono caps argila (ref. Paper 4QR-0). Padding e
+   layout vêm das utilities no <label>; aqui só cor/borda/fonte/checked. */
+.ora-variation-opt{
+  background:transparent; border-radius:0;
+  border:1px solid color-mix(in srgb,var(--ora-argila) 50%,transparent);
+  color:var(--ora-argila);
+  font-family:var(--ora-font-mono); font-weight:500;
+  letter-spacing:var(--ora-tracking-caps); text-transform:uppercase;
+}
+.ora-variation-opt:hover{ border-color:var(--ora-argila); color:var(--ora-noz); }
+.ora-variation-opt:has(.product-variation-option-input:checked){
+  border-color:var(--ora-espresso); color:var(--ora-espresso);
+}
+
+/* "Sobre o produto" — header com hierarquia de bottom-sheet (.ora-sheet-title)
+   + chevron grande que gira ao abrir. O bloco bordado (.ora-sobre, border-t/b no
+   markup) envolve título + CORPO; o corpo vive no collapse-content, sem padding
+   próprio do DaisyUI (o .ora-sobre__body controla via pb-4). */
+.ora-sobre>.collapse-title{ padding:0; min-height:0; }
+.ora-sobre>.collapse-title:after{ content:none; }
+.ora-sobre>.collapse-content{ padding:0; }
+.ora-sobre__chevron{ transition:transform .25s ease; }
+.ora-sobre:has(>input:checked) .ora-sobre__chevron{ transform:rotate(90deg); }
+
+/* Faixa de conteúdo full-width (compre-junto, reviews) abaixo das colunas:
+   linhas separadas pela linha de grid, ritmo de padding do footer. */
+.ora-pdp-band .collapse-title{
+  font-family:var(--ora-font-mono);font-weight:500;text-transform:uppercase;
+  letter-spacing:var(--ora-tracking-caps);font-size:var(--ora-caps);
+  color:var(--ora-espresso);padding-block:8px;
+}
+.ora-pdp-band .collapse-plus>.collapse-title:after{
+  font-family:var(--ora-font-mono);font-weight:400;font-size:2.25rem;line-height:1;
+  top:50%;transform:translateY(-50%);right:0;color:var(--ora-espresso);
+}
+.ora-pdp-band:has(> *){ border-top:1px solid var(--ora-line-2); }
+.ora-pdp-band>*{ padding-block:clamp(24px,3vw,40px); }
+.ora-pdp-band>*+*{ border-top:1px solid var(--ora-line-2); }
+
+/* ============================================================
+   Contato — split editorial: voz + canais diretos (esq) |
+   formulário (dir), divisória hairline central. CSS só de LAYOUT;
+   tipo/cor/CTA vêm do sistema global (.ora-serif/.ora-grotesk/
+   .ora-eyebrow/.ora-label/.ora-cta, tokens). (ref. jonnetti.com.au)
+   ============================================================ */
+.ora-contact{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--ora-line-2);min-height:var(--ora-section-h);}
+.ora-contact__voice{display:flex;flex-direction:column;gap:clamp(20px,3vw,36px);
+  padding:clamp(40px,6vw,80px) clamp(32px,5vw,72px) clamp(40px,6vw,80px) 0;
+  border-right:1px solid var(--ora-line-2);}
+/* statement = mesmo lockup das seções da Home (daybreak/editorial/community):
+   serif + grotesca em DUAS linhas, MESMO tamanho, AMBAS em --ora-ink */
+.ora-contact__statement{display:grid;gap:.04em;font-size:clamp(2.2rem,4.2vw,3.5rem);}
+.ora-contact__statement .ora-serif,.ora-contact__statement .ora-grotesk{color:var(--ora-ink);}
+.ora-contact__statement .ora-grotesk{letter-spacing:-.02em;font-weight:400;}
+/* lead = parágrafo de apoio em cacau, igual ao .ora-daybreak__lead */
+.ora-contact__lead{max-width:42ch;color:var(--ora-cacau);line-height:1.7;font-size:.96rem;}
+.ora-contact__channels{display:flex;flex-direction:column;gap:14px;margin-top:auto;}
+/* canais = papel .ora-cta-text (mono caps, ink→tangerina); aqui só a ESCALA */
+.ora-contact__channels .ora-cta-text{font-size:clamp(.95rem,1.4vw,1.2rem);}
+.ora-contact__form-col{padding:clamp(40px,6vw,80px) 0 clamp(40px,6vw,80px) clamp(32px,5vw,72px);}
+.ora-contact__fields{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,2vw,24px);}
+.ora-contact__field--full{grid-column:1 / -1;}
+.ora-contact__actions{display:flex;justify-content:flex-end;margin-top:clamp(24px,3vw,36px);}
+.ora-contact__error{margin-top:16px;font-family:var(--ora-font-mono);font-size:.78rem;color:var(--ora-uva);}
+.ora-contact__success{display:flex;flex-direction:column;justify-content:center;height:100%;color:var(--ora-ink);}
+.ora-contact__success .ora-serif{font-size:clamp(1.6rem,2.6vw,2.4rem);margin-bottom:6px;}
+.ora-contact__success p:last-child{font-family:var(--ora-font-mono);font-size:.9rem;color:var(--ora-noz);}
+@media(max-width:900px){
+  .ora-contact{grid-template-columns:1fr;min-height:0;}
+  .ora-contact__voice{border-right:0;border-bottom:1px solid var(--ora-line-2);padding:48px 0;}
+  .ora-contact__channels{margin-top:8px;}
+  .ora-contact__form-col{padding:48px 0;}
+  .ora-contact__fields{grid-template-columns:1fr;}
+}
+
+
+
+
+

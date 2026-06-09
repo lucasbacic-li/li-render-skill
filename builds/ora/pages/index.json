@@ -214,25 +214,25 @@
                 "title": "Mais Vendidos",
                 "shelf_id": "bestselling"
               }
-            },
-            {
-              "type": "template",
-              "template": "pages/home/editorial.liquid"
-            },
-            {
-              "type": "template",
-              "template": "pages/home/community.liquid"
-            },
-            {
-              "type": "template",
-              "template": "pages/home/browser.liquid",
-              "data": {
-                "categories": {
-                  "function": "get_category_tree"
-                }
-              }
             }
           ]
+        },
+        {
+          "type": "template",
+          "template": "pages/home/editorial.liquid"
+        },
+        {
+          "type": "template",
+          "template": "pages/home/community.liquid"
+        },
+        {
+          "type": "template",
+          "template": "pages/home/browser.liquid",
+          "data": {
+            "categories": {
+              "function": "get_category_tree"
+            }
+          }
         },
         {
           "type": "template",

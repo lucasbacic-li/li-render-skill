@@ -6,15 +6,16 @@
 
 {% assign product_images = data.product.images %}
 
-<carousel-embla 
-  class="product-images-carousel"
+<carousel-embla
+  class="product-images-carousel block"
   data-slides-per-view="1"
   data-loop="false"
   data-show-progress="true"
   data-autoplay="false"
+  data-disable-from="md"
 >
   <div class="embla">
-    <div class="embla__container flex">
+    <div class="embla__container flex md:flex-col">
       {% for image in product_images %}
         {% render 'pages/product/components/images/components/image', image: image, forloop: forloop %}
       {% else %}
@@ -75,9 +76,9 @@
     </div>
   </div>
   
-  <!-- Progress dots -->
+  <!-- Progress dots (mobile only — no desktop, fotos empilhadas) -->
   {% if product_images.size > 1 or data.product.media.youtube %}
-    <div class="flex justify-center mt-4">
+    <div class="flex justify-center mt-4 md:hidden">
       {% for image in product_images %}
         <button
           data-carousel-dot

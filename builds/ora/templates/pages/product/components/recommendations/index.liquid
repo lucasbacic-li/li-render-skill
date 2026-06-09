@@ -9,7 +9,7 @@
   ></div>
 {% else %}
   {%- if data.recommendations.products.size > 0 -%}
-    <div id="product-recommendations">
+    <div id="product-recommendations" class="ora-pdp-recos">
       {% comment %} Sem override de slides_per_view → herda o default (mobile 1.2 = 1 largo + corte). {% endcomment %}
       {% render 'shared/components/shelf/index',
         products: data.recommendations.products,

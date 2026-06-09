@@ -61,7 +61,7 @@
       CSS em .ora-shelf__grid (theme.css). Opt-in: só a home passa este tipo;
       autocomplete/recomendações seguem no embla.
     {%- endcomment -%}
-    <div class="ora-shelf flex flex-col gap-6 py-4 content-auto-[500px]">
+    <div class="ora-shelf flex flex-col gap-6 content-auto-[500px]">
       {%- if show_title and shelf_title -%}
         <h2 class="ora-shelf__title text-[var(--ora-section-head)] font-medium text-base-content">{{ shelf_title }}</h2>
       {%- endif -%}
@@ -170,5 +170,7 @@
   </div>
   {%- endif -%}
 {%- endif -%}
+
+
 
 

@@ -1,13 +1,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link 
-  href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" 
-  rel="stylesheet" 
-  media="print" 
+{%- comment -%} Fontes da marca via Google Fonts (woff2 + unicode-range, robusto no mobile).
+  Lusitana (display serif) · Host Grotesk (subtítulos) · Geist Mono (corpo).
+  Antes eram @font-face self-hosted no theme.css com url(../fonts/…) relativa, que
+  driblava o {% asset_url %} assinado → 404 → as 3 falhavam (serif caía em Georgia). {%- endcomment -%}
+<link
+  href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Host+Grotesk:wght@300..800&family=Lusitana:wght@400;700&display=swap"
+  rel="stylesheet"
+  media="print"
   onload="this.media='all'"
 >
 <noscript>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Host+Grotesk:wght@300..800&family=Lusitana:wght@400;700&display=swap" rel="stylesheet">
 </noscript>
 
 {%- comment -%} Ícones da marca: Material Symbols Sharp (style sharp, optical 40px) {%- endcomment -%}
@@ -107,3 +111,4 @@
 {% assign css_theme = '/style/theme.min.css' %}
 <link rel="preload" href="{% asset_url css_theme %}" as="style" fetchpriority="high">
 <link rel="stylesheet" href="{% asset_url css_theme %}" fetchpriority="high">
+

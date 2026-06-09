@@ -6,7 +6,7 @@
   <product-sku-selector class="block">
     <form
       id="prod-variations-selector-form"
-      class="relative flex flex-col gap-4 {% unless target_id == 'floating-product-buy-button-container' %}border-t border-base-200 py-5{% endunless %} transition-opacity duration-100"
+      class="relative flex flex-col gap-4 transition-opacity duration-100"
       hx-get
       hx-params="selected_variation[]"
       hx-trigger="li-prod-options-selected delay:200ms"
@@ -36,14 +36,14 @@
           data-variation-selected="{{ variation.selected_value }}"
           class="border-b border-base-200 pb-5 last:border-b-0 last:pb-0"
         >
-          <legend class="text-base font-medium text-base-content mb-3">Selecione a opção de {{ variation.option.display_name }}:</legend>
+          <legend class="text-sm font-medium mb-3 font-[family-name:var(--ora-font-mono)] text-[color:var(--ora-noz)]">Selecione a opção de {{ variation.option.display_name }}:</legend>
           <input type="hidden" name="selected_variation[]" id="{{ variation_ref }}" />
           <div class="flex flex-wrap items-center gap-3">
             {%- for option in variation.values -%}
               {%- assign option_ref = option.name | append: options_param_sep | append: option.id -%}
               <label
                 data-related-images="{{ option.related_images | json }}"
-                class="group relative shrink flex flex-wrap flex-col rounded-lg md:flex-row items-center justify-center gap-1 min-h-11 p-2.5 px-3.5 md:p-0.5 md:px-2.5 border border-base-content/10 cursor-pointer focus:outline-hidden has-disabled:cursor-not-allowed has-disabled:bg-transparent has-disabled:opacity-50 has-checked:border-primary has-checked:text-primary data-[color-selector=true]:px-1 data-[color-selector=true]:py-1 data-[color-selector=false]:min-w-21 transition-all duration-300"
+                class="ora-variation-opt group relative shrink flex flex-wrap flex-col md:flex-row items-center justify-center gap-1 min-h-12 px-6 pt-4 pb-3.5 cursor-pointer focus:outline-hidden has-disabled:cursor-not-allowed has-disabled:opacity-50 data-[color-selector=true]:p-1 data-[color-selector=false]:min-w-20 transition-all duration-300"
                 title="{{ variation.option.display_name }} {{ option.name }}"
                 data-testid="li-product-variation-option"
                 data-color-selector="{% if option.swatch.color %}true{% else %}false{% endif %}"
@@ -65,7 +65,7 @@
                 {%- endfor -%} {% endcomment %}
                 <span
                   id="prod-{{ product.id }}-variation-{{ variation_id }}-choice-{{ option.id }}-label"
-                  class="shrink break-words text-sm font-medium leading-5 block text-center md:text-left {% if option.swatch.color %}sr-only{% endif %}"
+                  class="shrink break-words text-xs font-medium leading-5 block text-center md:text-left {% if option.swatch.color %}sr-only{% endif %}"
                 >
                   {{- option.name -}}
                 </span>

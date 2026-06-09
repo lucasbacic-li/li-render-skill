@@ -1,5 +1,5 @@
 {% if data.suggestion_products.products.size > 0 %}
-  <div id="minicart_product_suggestion" class="grid grid-cols-2 gap-6 mx-auto px-6">
+  <div id="minicart_product_suggestion" class="grid grid-cols-2 gap-6 w-full px-6">
     {%- assign img_height = '170' -%}
     {%- assign img_width = img_height | times: 2 -%}
     {% for product in data.suggestion_products.products %}
@@ -7,3 +7,4 @@
     {% endfor %}
   </div>
 {% endif %}
+

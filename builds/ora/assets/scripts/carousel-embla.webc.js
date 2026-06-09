@@ -79,6 +79,9 @@ if (!customElements.get('carousel-embla')) {
       /** @type {number|null} Resize debounce timeout ID */
       this.resizeTimeoutId = null;
 
+      /** @type {number|null} Disable carousel at/above this viewport width (px); slides flow naturally */
+      this.disableFromPx = null;
+
       this.handlePrevClick = this.handlePrevClick.bind(this);
       this.handleNextClick = this.handleNextClick.bind(this);
       this.handleDotClick = this.handleDotClick.bind(this);
@@ -131,6 +134,20 @@ if (!customElements.get('carousel-embla')) {
       }
 
       this.resizeTimeoutId = setTimeout(() => {
+        // Handle crossing the disable breakpoint (e.g. resize desktop <-> mobile)
+        if (this.shouldDisable()) {
+          if (this.emblaApi) {
+            this.destroyEmbla();
+            this.clearSlideStyles();
+          }
+          this.resizeTimeoutId = null;
+          return;
+        } else if (!this.emblaApi && this.emblaLoaded) {
+          this.initializeCarousel();
+          this.resizeTimeoutId = null;
+          return;
+        }
+
         const newSlidesPerView = this.getCurrentSlidesPerView();
 
         // Only reinitialize if slides per view changed
@@ -218,6 +235,41 @@ if (!customElements.get('carousel-embla')) {
 
       this.autoHeight = this.getAttribute('data-auto-height') === 'true';
       this.wheelGestures = this.getAttribute('data-wheel-gestures') !== 'false';
+
+      // Optional: disable the carousel at/above a breakpoint so slides flow
+      // naturally (e.g. stacked column on desktop). Opt-in per instance.
+      const disableFrom = this.getAttribute('data-disable-from');
+      this.disableFromPx = disableFrom
+        ? (EmblaCarousel.BREAKPOINTS[disableFrom] ?? parseInt(disableFrom) ?? null)
+        : null;
+    }
+
+    /**
+     * Whether the carousel should be disabled at the current viewport width
+     * @private
+     * @returns {boolean}
+     */
+    shouldDisable() {
+      return this.disableFromPx !== null && window.innerWidth >= this.disableFromPx;
+    }
+
+    /**
+     * Removes inline styles applied by applySlidesPerView so CSS can lay out
+     * the slides freely when the carousel is disabled.
+     * @private
+     * @returns {void}
+     */
+    clearSlideStyles() {
+      const container = this.emblaNode?.querySelector('.embla__container');
+      const slides = this.emblaNode?.querySelectorAll('.embla__slide');
+      if (container) {
+        container.style.removeProperty('display');
+        container.style.removeProperty('gap');
+      }
+      slides?.forEach(slide => {
+        slide.style.removeProperty('flex');
+        slide.style.removeProperty('min-width');
+      });
     }
 
     /**
@@ -355,6 +407,12 @@ if (!customElements.get('carousel-embla')) {
       }
 
       this.destroyEmbla();
+
+      // Disabled at this breakpoint: let the slides flow via CSS (no Embla).
+      if (this.shouldDisable()) {
+        this.clearSlideStyles();
+        return;
+      }
 
       try {
         this.applySlidesPerView();

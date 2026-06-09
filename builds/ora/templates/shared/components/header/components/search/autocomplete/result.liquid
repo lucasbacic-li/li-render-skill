@@ -11,7 +11,7 @@
     {%- comment -%} Termos de busca {%- endcomment -%}
     {% if autocomplete.terms.size > 0 %}
       <div class="flex flex-col gap-3 px-6">
-        <span class="text-lg font-medium text-base-content block">
+        <span class="ora-label text-base-content block">
           {% if is_most_searched %}
             Termos mais buscados
           {% elsif is_suggestions %}
@@ -43,7 +43,7 @@
     {%- comment -%} Categorias {%- endcomment -%}
     {% if autocomplete.categories.size > 0 %}
       <div class="flex flex-col gap-3 px-6">
-        <span class="text-lg font-medium text-base-content block">
+        <span class="ora-label text-base-content block">
           Categorias
         </span>
         <div class="flex flex-col">
@@ -56,7 +56,7 @@
     {%- comment -%} Produtos {%- endcomment -%}
     {% if autocomplete.products.size > 0 %}
       <div class="flex flex-col">
-        <span class="text-lg font-medium text-base-content block px-6 mb-4">
+        <span class="ora-label text-base-content block px-6 mb-4">
           {% if is_most_searched %}
             Produtos mais buscados
           {% elsif is_suggestions %}
@@ -84,7 +84,7 @@
         </carousel-embla>
         {%- comment -%} Botão ver todos {%- endcomment -%}
         {% if is_suggestions %}
-          <a href="/search?q={{ ctx.url.querystring.q | url_encode }}" class="btn btn-primary rounded-full self-start mx-6">
+          <a href="/search?q={{ ctx.url.querystring.q | url_encode }}" class="btn btn-primary rounded-full self-start mx-6 mt-5">
             Ver todos os resultados
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="10" cy="10" r="10" fill="white"/>
@@ -101,4 +101,6 @@
   {% endif %}
   {% render 'shared/components/header/components/search/autocomplete/empty', message: empty_message %}
 {% endif %}
+
+
 

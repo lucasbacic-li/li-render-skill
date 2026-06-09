@@ -102,15 +102,6 @@
       {% endif %}
     >
       {{- layout_attributes.configuracao.texto_botao_comprar | default: 'Adicionar ao carrinho' }}
-      <svg class="text-primary" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0 12C0 5.37258 5.37258 0 12 0C18.6274 0 24 5.37258 24 12C24 18.6274 18.6274 24 12 24C5.37258 24 0 18.6274 0 12Z" fill="white"/>
-        <mask id="mask0_541_8703" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
-          <rect width="24" height="24" fill="#D9D9D9"/>
-        </mask>
-        <g mask="url(#mask0_541_8703)">
-          <path d="M13.625 17L12.4875 15.7917L15.3719 12.8333H5.5V11.1667H15.3719L12.4875 8.20833L13.625 7L18.5 12L13.625 17Z" fill="currentColor"/>
-        </g>
-      </svg>
 
       <span id="btn-add-to-cart-{{ selected_sku.id }}-spinner" class="htmx-indicator opacity-0 absolute inset-0 bg-base-content/10 flex items-center justify-center">
         <svg class="fill-current animate-spin size-5" role="img" aria-hidden="true">
