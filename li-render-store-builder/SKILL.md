@@ -78,8 +78,12 @@ Uma mudança só está pronta quando:
       antes/depois para mudanças grandes (`references/visual-regression.md`).
       Raio global exige verificação ampla, não só a página que você editou.
 - [ ] **Antes de um deploy maior / `theme promote`**: rodar o smoke test do
-      caminho primário (Home → Busca → PDP → minicart) — `references/smoke-test.md`.
-      Os 4 passos devem passar; qualquer falha = regressão, não promova.
+      caminho primário (Home → Busca → **prévia de busca ao vivo** → PDP →
+      **carrinho vazio** → add-to-cart → minicart) — `references/smoke-test.md`.
+      Todos os passos devem passar; qualquer falha = regressão, não promova.
+      A avaliação inclui **anomalia visual** (colapso/largura-zero, falta de
+      padding, sobreposição, elemento prometido faltando), não só função —
+      ver a tabela em `references/qa-checklist.md`.
 
 ## Inputs necessários
 
@@ -139,8 +143,14 @@ componentes depois — assim toda página herda a marca de graça.
    (CSS vars e/ou config do Tailwind) pelos tokens da marca, **preservando os
    nomes de papel** que os templates já usam (mapeie marca→papel, não renomeie
    tudo). Rode `npm run build:css`.
-2. **Fontes**: copie os arquivos de fonte para `assets/`, declare `@font-face`,
-   e aponte as famílias do tema para elas.
+2. **Fontes**: prefira **Google Fonts via `<link>` no `<head>`** quando as famílias
+   existirem lá (mesmo padrão do Material Symbols do litheme; serve woff2 +
+   unicode-range, robusto no mobile). **NÃO** declare `@font-face` com
+   `url(../fonts/…)` em `theme.css` — é asset estático, o caminho relativo dribla o
+   `{% asset_url %}` assinado e dá 404 (as 3 fontes falham; só a serifada é óbvia).
+   Se for self-hostar, ponha o `@font-face` num `<style>` Liquid no head com
+   `src: url('{% asset_url "/fonts/X.woff2" %}')`. Detalhes e diagnóstico em
+   `references/li-render.md` (gotcha de fontes).
 3. **Logos/símbolos**: copie SVGs/imagens para `assets/` e referencie via
    `{% asset_url "..." %}` (CDN + resize). Use as variantes claro/escuro nos
    contextos certos (header transparente vs. footer escuro, etc.).

@@ -124,11 +124,69 @@ Ex. (loja ora): `theme deploy ora -t ora-loja` → `theme promote ora-loja`.
 - `deploy` copia pages/templates/assets do dev p/ um tema novo de produção, com
   otimizações; `-t` nomeia o alvo (sem `-t`, gera nome). Sem `--global` é deploy
   normal (não publica como tema global de marketplace).
-- `promote` pede confirmação `[y/n]` (e de remoção de A/B test se houver) →
-  interativo, precisa TTY/PTY ou `-f/--force`.
-- Verifique ao vivo na loja **pública** (não-preview): `https://{loja}.lojas.li`
-  (procure as classes/markers do seu tema no HTML). O navegador conectado pode
-  bloquear o domínio ao vivo — use `curl` para conferir.
+  - **`deploy` pode falhar transitoriamente:** "An unexpected error occurred while
+    deploying… Reference ID: … The incomplete theme has been deleted." Visto e
+    **resolvido só re-rodando** o mesmo comando. Tente de novo antes de investigar.
+  - 🔴 **NÃO reuse um `-t` que já existe / que teve deploy falho — use NOME NOVO.**
+    Caso real: 1º `deploy ora -t ora-loja` **falhou** ("incomplete theme deleted");
+    o 2º gravou por cima do mesmo `ora-loja`. Resultado: produção renderizou com
+    **cores/fontes certas mas SEM layout** — `.ora-shelf__grid`, paddings, grid
+    (tudo em `@layer utilities`) **não aplicavam**; só variáveis `:root` sobreviviam.
+    O CSS servido era **md5-idêntico** ao do dev (que renderiza certo no preview) e
+    vinha `200 text/css` — mas com **`x-cache: Hit from cloudfront`**: a borda servia
+    ao browser uma versão ruim/parcial (parse dos blocos `@layer` quebrava no meio),
+    diferente do que o `curl` pegava. **Fix que funcionou:** `deploy ora -t
+    ora-loja-v3` (nome novo ⇒ **URLs de asset novas** `/ora-loja-v3/…` ⇒ cache de
+    borda limpo ⇒ parse correto). Depois `promote ora-loja-v3`. Regra: **cada deploy
+    de correção vai para um nome incrementado** (`-v2`, `-v3`); não sobrescreva.
+  - **Antes do `deploy`, faça `push` COMPLETO do dev (não confie no `sync`).** O
+    `sync` só envia arquivos que mudaram *durante* a sessão; o tema dev no servidor
+    pode estar **defasado** do local. No caso real, um `push` antes do deploy
+    **substituiu 7 páginas + 1 template + o CSS** que o servidor tinha desatualizados
+    — e o `deploy` copia o estado do **servidor**, não o seu disco. Push → deploy.
+- `promote` pede confirmação `[y/n]` (e de remoção de A/B test se houver).
+  - ⚠️ **`-f/--force` NÃO pula a confirmação** na CLI `20260519.2` — apesar do
+    `--help` dizer que pula "both the promote and A/B test confirmations", o prompt
+    "Are you sure you want to promote…?" ainda aparece. Stdin canalizado
+    (`printf 'y\n' |`) também falha ("Failed to read input in non-interactive
+    mode"). **Solução que funciona: alocar um PTY e responder `y`** — ex. um wrapper
+    Python `pty.fork()` que faz `select` no master, e quando vê `[y/n]`/`sure`/`(y)`
+    escreve `y\n`. Esse é o método para o agente promover sozinho.
+  - ⚠️ **Gotcha de esgotamento de PTY (resolve o "openpty: out of pty devices"):**
+    `pty.fork()`/`expect`/`script` podem falhar com "out of pty devices" /
+    "no more ptys" / "Device not configured". Causa real **não** é o sandbox — é o
+    **pool de ptys do macOS esgotado** (`sysctl kern.tty.ptmx_max` = 511). Diagnostique
+    com `lsof | grep -E '/dev/ttys|/dev/ptmx' | awk '{print $1,$2}' | sort | uniq -c
+    | sort -rn` — visto o **próprio processo `Claude` segurando 512 ptys** (shells/
+    tarefas em background acumulados na sessão). **Não mate esse PID** (é o app da
+    sessão). Conserto: **reiniciar o Claude Code** libera os ptys; teste com
+    `python3 -c 'import os;m,s=os.openpty();print(os.ttyname(s))'` e re-rode o promote.
+  - **Reusar `-t <prod>` num tema já promovido:** o `deploy` atualiza o conteúdo do
+    slot ativo; o `promote` seguinte pode retornar "This theme is already promoted"
+    (o slot já estava ativo) — e a loja **já serve a nova versão** mesmo assim.
+  - O `deploy` roda 100% pelo agente; o `promote` também, desde que haja PTY livre.
+    Reconfirme com `theme list -e production` e **verifique na loja pública** depois.
+- Verifique ao vivo na loja **pública** APÓS o promote — a URL real é o domínio do
+  lojista (`https://{loja}.lojaintegrada.com.br`), não o `.lojas.li`.
+  - ⚠️ **O navegador conectado (Chrome MCP) BLOQUEIA o domínio `lojaintegrada.com.br`**
+    ("Navigation to this domain is not allowed"); `curl`/WebFetch pegam só o HTML
+    estático (não provam layout/CSS aplicado). **Para ver o render real e checar
+    estilo computado, use Chrome headless via Bash + CDP** (o headless renderiza a
+    loja pública sem login):
+    - Screenshot: `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      --headless=new --disable-gpu --window-size=1440,900 --virtual-time-budget=9000
+      --screenshot=out.png "<url>?cb=$(date +%s)"`. **Janela alta infla heros `100vh`**
+      — capture em altura realista (~900–1100) ou scroll via CDP, senão você lê um
+      "hero gigante" que é artefato da captura, não bug.
+    - **Estilo computado (prova determinística)** via CDP: subir headless com
+      `--remote-debugging-port=9222`, e por WebSocket (Node 22+ tem `WebSocket`
+      global — sem npm) rodar `Runtime.evaluate` de
+      `getComputedStyle(document.querySelector('.ora-shelf__grid')).display` etc.
+      Foi assim que se provou `display:block` (quebrado) vs `grid` (ok) em prod.
+  - **Sintoma "cores/fontes ok mas layout sumiu" = `@layer utilities` não aplicando**
+    (vars `:root` sobrevivem, regras de classe não). Em prod com CSS idêntico ao dev,
+    a causa foi **cache de borda ruim** — ver o gate de deploy acima (deploy p/ nome
+    novo resolve). Cheque o `display` computado de um container de layout, não só o screenshot.
 
 Promover é decisão **explícita do usuário** (publica na loja real). Rode o smoke
 test + sweep de regressão ANTES (ver `smoke-test.md`, `visual-regression.md`).
@@ -339,6 +397,24 @@ Tag `asset_url`:
 > se precisar economizar peso. O resize `/WxH/` só vale para imagens servidas pelo
 > `ctx.static_domain` (produtos via `preview_images`, banners via `get_banners`).
 
+> **⚠️ Fontes: NÃO use `@font-face` com `url(../fonts/…)` em `theme.css` (verificado).**
+> `theme.css`/`theme.min.css` é asset **estático** — não passa por Liquid, então não
+> dá pra usar `{% asset_url %}` lá dentro. O `url(../fonts/X.ttf)` relativo é resolvido
+> pelo browser contra a URL do CSS servido (`…/{WxH}/<conta>/render/theme_assets/…`),
+> caindo num caminho **sem a resolução do CDN** → **404/403** → a fonte falha. Sintoma:
+> só a **serifada** parece quebrada (cai em Georgia, óbvio), enquanto grotesca→system-ui
+> e mono→ui-monospace disfarçam — mas as **três** falharam (`FontFace.status:"error"`;
+> `document.fonts.check()` ENGANA, retorna true mesmo com erro — cheque `.status`).
+> **Duas saídas corretas:**
+> 1. **Google Fonts via `<link>` no `<head>`** (recomendado se a fonte existe lá —
+>    Lusitana, Host Grotesk, Geist Mono existem): mesmo padrão do Material Symbols do
+>    litheme (`media="print" onload="this.media='all'"` + `<noscript>` + `display=swap`).
+>    Serve **woff2 + unicode-range** (melhor no mobile que TTF variable). Verificado: as
+>    3 viram `status:"loaded"`.
+> 2. **Self-host via `@font-face` num `<style>` Liquid** no head, com
+>    `src: url('{% asset_url "/fonts/X.woff2" %}')` — aí a URL é assinada corretamente.
+>    Prefira **woff2** (converta o TTF) p/ robustez no mobile.
+
 Inspecionar config do lojista: `{{ layout_attributes | json }}`
 (`cabecalho`, `configuracao`, `conteudo/banner/coluna/rodape`, toggles como
 `product_review`, `alerta_frete_gratis`, `newsletter`).
@@ -356,3 +432,23 @@ Base: `https://ora-lingerie-preview.lojas.li/.docs/`
   `cli/sync_theme`
 - Funções: pasta `functions/` (ver §6)
 - Doc completa em uma página: `print.html`
+
+### Gotchas de sync/push/PTY (verificados)
+
+- **`sync` valida o JSON da página contra o schema (estrito) e recusa silenciosamente.**
+  Erro: *"Page validation: ... JSON is valid against no schemas from 'oneOf'. Page
+  not synced"*. Diagnostique baixando o schema
+  (`https://cdn.awsli.com.br/public/render/schema/v1.json`) + `jsonschema` (Draft7),
+  iterando erros por componente. Causa comum: **container > 10 componentes**
+  (`maxItems: 10`) — ver `litheme-structure.md`.
+- **`sync` só sobe em mudança de CONTEÚDO de arquivo já observado.** Arquivo NOVO
+  criado antes do sync iniciar, ou tocado (`touch`)/copiado-igual, NÃO sobe. Para
+  texto: faça uma mudança de conteúdo. Para binário (imagem): `rm` + esperar > o
+  intervalo + `cp` de volta (evento de create). Confirme no log.
+- **Esgotamento de PTY em sessões longas.** A harness (app) segura ~todos os PTYs
+  do sistema (`sysctl kern.tty.ptmx_max`, ex. 511). Aí `pty.fork()` (usado p/
+  responder o prompt interativo do `push`/`promote`) falha com **"out of pty
+  devices"** — e não dá pra liberar (são da harness, não dos seus processos).
+  Contorno: prefira **`sync`** (não pede prompt, não precisa de PTY) para subir
+  mudanças; e mantenha a página **schema-válida** para o sync aceitá-la. `push`/
+  `promote` interativos só quando há PTY livre.

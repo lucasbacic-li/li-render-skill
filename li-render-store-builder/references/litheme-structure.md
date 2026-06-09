@@ -220,3 +220,30 @@ cirúrgicas em poucos templates (`pages/home/*`, `shared/components/header/index
 
 HTMX 2.x, Embla Carousel 9 (+plugins), FontAwesome (sprite SVG). Não precisam ser
 instaladas — vêm por CDN/asset.
+
+## Gotchas de página / asset / deploy (verificados na prática)
+
+Ao adicionar seções à home (ou qualquer página), atenção:
+
+- **`maxItems: 10` por container.** O schema do renderizador limita cada container
+  a **10 componentes** (`html.body.components`, `<main>`, `<header>`, etc.). Adicionar
+  seções além disso faz o `sync` rejeitar a página com *"JSON is valid against no
+  schemas from 'oneOf'"*. Solução: **distribua** (ex.: seções editoriais full-bleed
+  podem ser filhas diretas do `body`, ao lado de `<main>`, em vez de dentro dele) ou
+  **agrupe** num sub-container. Conte os componentes antes.
+- **`sync` valida o JSON contra o schema (estrito); `push` é mais leniente.** Quando
+  o sync diz "valid against no schemas from oneOf", baixe o schema
+  (`https://cdn.awsli.com.br/public/render/schema/v1.json`) e valide localmente com
+  `jsonschema` (Draft7) — itere os erros por componente p/ achar o caminho exato
+  (foi assim que o `maxItems:10` apareceu). O schema também define:
+  `data`/`global_data` exigem `function` de um **enum** fixo; `path` de um enum/regex;
+  `_version` ∈ {"2","3"} (string); `properties` pode ser qualquer objeto (arrays ok).
+- **`asset_url` retorna o caminho CRU se o asset não está no servidor** → o browser
+  resolve relativo ao domínio (`/brand/x.jpg`) e dá **404**. Suba os assets ANTES de
+  referenciá-los. Sinal: `naturalWidth:0` + `currentSrc` no domínio do preview (não
+  em `cdn.awsli.com.br`).
+- **Asset binário novo precisa de evento de *create* p/ o `sync` subir.** Arquivos
+  copiados ANTES do sync iniciar não sobem (sync não faz upload inicial; e `touch`/
+  `cp`-mesmo-conteúdo não basta — ele observa conteúdo). Force um create: `rm` o
+  arquivo, espere **> o intervalo do sync**, depois `cp` de volta, espere de novo.
+  Confirme "Asset created: ..." no log do sync.

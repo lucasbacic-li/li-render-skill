@@ -49,6 +49,27 @@ de breakpoint Tailwind (`grid-cols-1 sm:grid-cols-2`) e os atributos que o JS l�
 precisar renderizar a 390px. Use (b) como fallback, deixando claro no relato que
 foi por config, não pixel renderizado.
 
+## ⚠️ Anomalia visual é regressão (funcional ≠ correto)
+
+Um fluxo pode passar em todos os asserts de função e ainda estar **visualmente
+quebrado**. A avaliação **tem que** procurar anomalias visuais, não só "renderizou
+/ tem N itens no DOM". As quatro classes a caçar em cada estado:
+
+| Classe | O que procurar | Como pegar (determinístico) |
+|---|---|---|
+| **Colapso / largura-zero** | grade/card/imagem que existe no DOM mas renderiza fino ou 0×0 | `el.getBoundingClientRect().width` — **assert > 0** em grids, cards e imagens; cheque `getComputedStyle(grid).gridTemplateColumns` (não pode virar `2px 2px`) |
+| **Falta de padding/espaço** | blocos adjacentes colados (ex.: listagem ↔ CTA) | medir o gap entre `bottom` de um e `top` do seguinte (`getBoundingClientRect`); confirmar visualmente no screenshot |
+| **Sobreposição** | elementos empilhados/cobrindo outro | comparar retângulos de irmãos por interseção; olhar o screenshot |
+| **Ausência do que deveria existir** | a copy/intenção promete algo que não aparece (ex.: "veja os produtos abaixo" sem grade) | comparar a intenção do template com o renderizado |
+
+**Gotcha verificada (litheme):** uma grade (`grid grid-cols-2`) dentro de um pai
+`flex justify-center` **sem `w-full`** encolhe para min-content — as colunas viram
+~`2px` e as imagens do card renderizam `0×0`, aparecendo como **slivers verticais**.
+Visto no estado de carrinho vazio (sugestões de produto). Por isso: **nunca confie
+só em "o DOM tem N cards"** — meça a largura renderizada. Add-to-cart/HTMX: o
+conteúdo do drawer (item, sugestões) carrega **assíncrono** — espere o swap antes
+de medir, senão você lê o container vazio e conclui "sumiu" por engano.
+
 ## Auditoria de estilo (rode antes de fechar)
 
 `bash scripts/audit-theme-styles.sh <tema>` — pega forks que escapam à inspeção

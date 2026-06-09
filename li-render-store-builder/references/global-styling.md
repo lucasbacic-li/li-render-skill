@@ -24,7 +24,8 @@ escrever qualquer estilo, classifique:
 | Botão / CTA preenchido | `.btn` global (+ `.btn-primary`) | criar um botão com estilo próprio no bloco |
 | CTA de texto | `.ora-cta-text` (papel único) | recriar "mono caps + hover tangerina" à mão |
 | Tipografia (família/caixa) | `@layer base` h1-h6 + papéis `.ora-serif/.ora-grotesk/.ora-mono` | pôr `font-serif/mono` ou `font-[...]` por bloco |
-| Tamanho de título | escala global (h-tags) + clamp em componentes proeminentes | `text-xl` fixo num h2 de seção |
+| **Caixa-alta mono (chapéu/label/link)** | **escala caps tokenizada** (`--ora-caps`/`--ora-caps-xs` + `--ora-tracking-caps`) | inventar par tamanho/tracking por classe (`.16em` aqui, `.14em` ali, `px` vs `rem`) |
+| Tamanho de título / head de seção | escala global (h-tags) + **um** clamp em `--ora-section-head` | `text-xl`/`text-2xl` fixo num h2 de seção; cada banner com seu tamanho |
 | Ícone (cor) | `fill="currentColor"` (herda o token) | `fill="#hex"` fixo (fica off-brand pós-reskin) |
 | Espaçamento/largura | utilities Tailwind + `.container` global | reimplementar gutter/max-width por seção |
 
@@ -158,17 +159,86 @@ newsletter, busca, cálculo de CEP, contato — todos herdam de `.input`/`.btn`.
 
 Pegue os tamanhos do(s) HTML(s) de referência. Da Ora (`homepage.css`):
 - **Big title / display** (manifesto, editorial): `clamp(2.2rem, 5vw, 3.75rem)`.
-- **Section head / título de prateleira**: `clamp(1.3rem, 2.4vw, 2rem)` — é a
-  resposta para "qual o tamanho padrão do título de prateleira". (O litheme vem
-  com `text-xl` fixo = 1.25rem; trocar pelo clamp responsivo.)
-- **Body/prose**: ~`.92–.96rem`; **mono pequeno** (labels, tags): `.68–.82rem`;
-  **eyebrow/label**: `.68rem` uppercase tracking `.14–.16em`.
+- **Section head / título de prateleira**: `clamp(1.3rem, 2.4vw, 2rem)` —
+  **tokenize como `--ora-section-head`** e faça h2-base + banners + shelf puxarem
+  dele (ver subseção abaixo). O litheme vem com `text-xl` fixo; trocar pelo token.
+- **Body/prose**: ~`.92–.96rem`; **mono pequeno** (labels, tags): `.6–.7rem`;
+  **eyebrow/label/link**: **escala caps tokenizada** (ver subseção abaixo) —
+  **nunca** um par tamanho/tracking solto por classe.
 
 No `@layer base`, dê tamanhos **modestos** aos h-tags (ex.: h2 `1.25rem`) para
 não estourar em contextos estreitos (drawers usam `vw`!), e aplique o tamanho
 **responsivo grande** explicitamente nos componentes proeminentes (título de
 prateleira). `clamp(...,vw,...)` num drawer estreito vira o teto do clamp →
 grande demais; prefira tamanho fixo em headers de drawer.
+
+## Escala mono-caps tokenizada (chapéus, labels, links, botões)
+
+> **A marca tem UM sistema de caixa-alta mono — não nove.** O sintoma do
+> anti-padrão: cada papel caps (`.ora-eyebrow`, `.ora-label`, `.ora-navlink`,
+> `.ora-sublink`, `.ora-tag`, `.ora-cta-text`, `.btn`, secundário, "remover"…)
+> inventando seu próprio par tamanho/tracking — na Ora, antes do audit, isso era
+> **9.6→16px** de tamanho × **.02→.16em** de tracking, misturando `px` e `rem`
+> para o MESMO papel visual. Resultado: "chapéu" e link com pesos diferentes
+> lado a lado, e a mesma navegação parecendo de outra marca entre as telas.
+
+Defina a escala como **tokens no `:root`** e faça todo papel caps puxar deles —
+em vez de cada classe declarar seu próprio valor:
+
+```css
+:root{
+  --ora-caps:.7rem;          /* degrau padrão — chapéu/label/link (~11px) */
+  --ora-caps-xs:.6rem;       /* degrau micro — tags/badges (~9.6px)        */
+  --ora-tracking-caps:.12em; /* tracking ÚNICO p/ todo caps                */
+}
+/* cada papel referencia o token, nunca um literal: */
+.ora-eyebrow,.ora-label,.ora-sublink,.ora-navlink,.ora-cta-text{
+  letter-spacing:var(--ora-tracking-caps); font-size:var(--ora-caps);
+}
+.ora-tag{ letter-spacing:var(--ora-tracking-caps); font-size:var(--ora-caps-xs); }
+.btn,.btn-secondary{ letter-spacing:var(--ora-tracking-caps); }
+```
+
+Nos templates, caps ad-hoc (`text-sm uppercase`, `tracking-wider`) também puxam o
+token: `class="… uppercase tracking-[var(--ora-tracking-caps)]"`. Verificado no
+preview pós-normalização: eyebrow, navlink e footer-label — antes `.16/.12/.14em`
+— renderizam **idênticos a 11.2px / 1.344px (.12em)**.
+
+**Regra de ouro:** 2 degraus de tamanho + 1 tracking cobrem todos os chapéus. Se
+você precisa de um terceiro tamanho de label, quase certamente é um head de seção
+(use `--ora-section-head`) ou um botão (que herda do `.btn`), não um quarto degrau.
+
+## Título de seção: UM clamp, tokenizado (`--ora-section-head`)
+
+O "head de seção" reaparece em muitos blocos — shelf, os **3 banners**
+(full/mini/showcase), `<h2>` genérico, empty states. O litheme entrega cada um
+com seu tamanho fixo (`text-xl`, `text-2xl`, `text-xl md:text-3xl`…), então uma
+home com três banners mostra **três tamanhos**, nenhum respondendo ao viewport.
+Tokenize um clamp só e aponte todos para ele:
+
+```css
+:root{ --ora-section-head:clamp(1.3rem,2.4vw,2rem); }
+@layer base{ h2{ font-size:var(--ora-section-head); } }   /* min do h2 = min do shelf */
+```
+```html
+<h2 class="text-[var(--ora-section-head)] …">{{ banner.title }}</h2>
+```
+
+Pegadinha já vista: o `h2` base com `min` MAIOR que o do shelf (ex.: `1.5rem` vs
+`1.3rem`) faz um `<h2>` "pelado" ficar **maior no mobile** que o head da
+prateleira logo abaixo. Alinhe os `min`.
+
+## Mesma navegação = mesma LINGUAGEM de tipo entre telas (não só tamanho)
+
+Armadilha de fluxo secundário (ex.: navegação de categoria): o litheme dá ao
+menu mobile links em `text-base` **sentence-case**, enquanto a nav desktop é
+mono-caps. Vira a **mesma** navegação parecendo de marcas diferentes em cada
+viewport. O certo é unificar a *linguagem* (mono + caps + `--ora-tracking-caps`)
+e variar só o **tamanho tappável**: desktop `--ora-caps` (~11px), mobile `text-base`
+(16px) — ambos mono-caps. E os labels de seção do drawer ("Categorias", "Links
+importantes") são `.ora-label` (papel), não `<span text-xl>` sentence-case
+(título-como-corpo). Verificado: label `11.2px .ora-label`, link de categoria
+`16px mono caps .12em`.
 
 ## Hierarquia de cor (título vs. corpo)
 
@@ -204,6 +274,11 @@ achatada. A marca separa (ver `--ink` vs `--muted` na ref.):
 - **Cores hardcoded**: `grep -rn "text-black\|text-white\|bg-white"`.
 - **Tamanhos fixos** que competem com o sistema (`text-xl` no título de
   prateleira). Alinhe ao sistema em vez de criar exceção.
+- **Escala caps divergente** (tracking/size literal num papel mono-caps):
+  `audit-theme-styles.sh` checks 9-10 pegam tracking literal em template
+  (`tracking-wider`…) e em papel mono-caps no CSS (`letter-spacing:.14em` em vez
+  de `var(--ora-tracking-caps)`). Tudo que é caixa-alta mono puxa dos tokens
+  `--ora-caps`/`--ora-caps-xs` + `--ora-tracking-caps`.
 
 ## Como verificar um pass global
 
@@ -280,3 +355,49 @@ Saídas (em ordem):
    do antigo travou. (Foi assim que destravamos a newsletter da Ora.)
 3. `li-cli theme push` força upload de tudo — mas é **interativo (y/n + diff)** e
    recusa stdin, então precisa de um TTY humano.
+
+Nuance: se um **`sync` watcher já está rodando** (você pode ter um de uma sessão
+anterior — sinal: ao iniciar outro sync sai `Address already in use` no socket de
+reload), ele sobe seus templates/assets **conforme você salva**. Aí o `push` vai
+listar esses arquivos como **"No Change"** — não é falha, o watcher já os subiu. O
+que o push ainda pega são **pages (`*.json`)** e arquivos editados antes do watcher
+subir. Na dúvida, **verifique no preview** (fonte da verdade), não no diff do push.
+
+## Grade aparente na PDP (acordeões + colunas)
+
+A PDP reusa a **mesma linguagem de grade** do footer/home/minicart: linhas
+`var(--ora-line-2)`, padding no ritmo do footer (`clamp(24px,3vw,40px)`), labels
+eyebrow mono caps. Dois escopos de CSS (não forks — puxam só tokens/papéis):
+
+- `.ora-pdp-band` — faixa de conteúdo full-width: `>*` ganha padding-block e
+  `>*+*` ganha `border-top` (linhas de grid entre compre-junto/reviews). Use
+  `:has(> *)` no `border-top`/`margin-top` da faixa pra **não desenhar linha órfã**
+  quando o produto não tem reviews/compre-junto.
+- `.ora-pdp-accordion` / `.ora-pdp-band` `.collapse-title` — título DaisyUI vira
+  eyebrow (`--ora-font-mono` + caps + `--ora-tracking-caps`); o indicador
+  `.collapse-plus>.collapse-title:after` vai a `font-size:~2.25rem` (≈40px) p/ ler
+  como ícone grande da marca. Specificity do escopo `.ora-pdp-*` vence o
+  `@utility collapse-title` e o `:where()` do DaisyUI sem `!`.
+
+Ver o layout (duas zonas, sticky, fotos empilhadas) em
+`page-json-recipes.md` → "PDP em duas zonas".
+
+### O CTA primário JÁ existe (`.btn.btn-primary`) — nunca o reconstrua
+
+Na Ora, `.btn.btn-primary` é a barra lilás + label creme + **caixa espresso 1:1
+com seta** (um `::after` com `content:"\e5c8"` arrow_forward, `aspect-ratio:1`,
+40px) + `.btn.btn-primary > svg{display:none}` p/ matar ícone interno. Vale pra
+todo primário (add-to-cart, checkout, cupom…) sem tocar markup. Se você escrever um
+botão com seta própria, ela **soma à do `::after`** = dois ícones/"dois botões"
+(bug real). Antes de estilizar qualquer CTA, **leia o `.btn.btn-primary` no CSS** e
+use-o como está. E **`.ora-cta` é namespace OCUPADO** (composto inline de
+newsletter/contato: label sublinhado + `.ora-cta__box`) — reusar herda o
+`border-bottom` do label e colide; se precisar de um CTA novo, dê outro nome.
+
+### Gotcha: o browser cacheia `theme.min.css` no preview
+
+O preview do LI Render tem cache server-side desligado, mas o **navegador** cacheia
+o asset CSS. Depois de `build:css` + sync, um reload normal pode mostrar CSS velho
+(uma regra nova "não aparece"). Confirme com `getComputedStyle`/buscando o seletor
+nos `document.styleSheets`; se faltar, faça **hard reload** (Cmd+Shift+R) pra puxar
+o `theme.min.css` novo.

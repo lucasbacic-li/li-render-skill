@@ -104,6 +104,114 @@ passe id. Recomendado em `global_data` para todos os componentes acessarem.
 }
 ```
 
+### PDP em duas zonas — fotos empilhadas + rail de decisão fixo (verificado)
+
+Padrão da Ora, portando a **grade aparente** (footer/home/minicart) para a PDP.
+A ideia: separar **o que é decisão de compra** do **que é conteúdo**, e dar ao
+desktop uma experiência de *scroll de fotos com a decisão parada no view*.
+
+**Classifique cada componente da PDP por largura mínima legível** (é o eixo que
+decide onde ele vai):
+
+- **Rail de DECISÃO (coluna direita 50%, fixa):** breadcrumb (movido pra dentro
+  do rail), nome + favoritar (Material 40px), **linha de preço em 3 células**
+  (preço · parcelas · "formas de pagamento" → abre modal), variações/SKU, CTA
+  comprar, e a **descrição** como header "SOBRE O PRODUTO". **SEM frete** (a Ora
+  tirou o cálculo de frete do rail).
+- **Faixa de CONTEÚDO (full-width abaixo das duas colunas):** compre-junto
+  (cards horizontais), avaliações (barras+cards+fotos), recomendações (carousel),
+  banner showcase. Tudo que **não cabe** num rail estreito desce pra cá.
+
+**Grade (no `[product].json`) — 50/50 full-bleed (ref. Paper):**
+```
+"class": "grid grid-cols-1 md:grid-cols-2 md:items-stretch"
+```
+SEM `container` (full-bleed, a imagem vai edge-to-edge à esquerda). Filhos =
+**imagens** (col 1, `flex:1`, sem padding) e **coluna de decisão** (col 2,
+`p-5 md:p-14` + `md:border-l md:border-b border-[color:var(--ora-line-2)]`). O
+breadcrumb agora vive DENTRO do rail (não é mais filho da grade). A faixa de
+conteúdo é um **container irmão DEPOIS** da grade.
+
+⚠️ **NÃO ponha `row-span-2` (nem `items-start`) na coluna de fotos.** Pra o
+`<sticky-container>` (webc) pinar enquanto as fotos rolam, as duas colunas ficam
+em **UMA linha** com `items-stretch`: a coluna de fotos (alta) define a altura da
+linha e o rail **estica até ela**, dando ao `position:sticky` por onde viajar.
+Um `row-span-2` na imagem cria 2 linhas, prende o rail na linha 1 (~600px) e a
+decisão some depois de rolar essa altura. (Dois bugs reais: `items-start` encolhia
+o rail; `row-span-2` o prendia na 1ª linha.) Detalhe do webc: ele só aplica
+`md:sticky` quando `scrollHeight < innerHeight`, então o rail tem que caber na
+viewport — a descrição entra **colapsada** (`{% unless rail %}checked{% endunless %}`,
+passe `rail: true` no render). **Offset do header:** o menu é `position:sticky;top:0`,
+então o rail tem que pinar ABAIXO dele, senão sobrepõe (bug real). Use
+`md:top-[calc(var(--ora-headbar-h)+24px)]` no `<sticky-container>` — a altura do
+header + ~24px de respiro (só `var(--ora-headbar-h)` deixa colado). A var foi
+promovida ao `:root` (antes só existia no `.ora-hero`).
+
+**Linha de preço responsiva:** desktop = `md:flex-row` (3 colunas, `md:border-l`);
+mobile = base `flex-col` (3 linhas empilhadas, `border-t`) — em coluna estreita as
+células espremem e o texto quebra palavra-a-palavra. Sempre `flex-col md:flex-row`
+e trocar `border-l`↔`border-t` no breakpoint.
+
+⚠️ **CTA: use o `.btn.btn-primary` GLOBAL — NÃO construa um botão.** Na Ora o
+primário já É o CTA do Paper: barra lilás + label + **caixa espresso 1:1 com seta
+via `::after`** (`content:"\e5c8"` arrow_forward). Montar markup com seta própria
+**duplica** a seta (vira dois botões). E **`.ora-cta` é nome OCUPADO** (composto
+inline de newsletter/contato com texto sublinhado + caixa) — reusar quebra os dois.
+
+**Linha de preço (3 células) + hierarquia (ref. Paper 4QR-0):** flex com `border-b`;
+preço (`px-8 py-6`, **espresso 20px mono**) | parcelas (`flex-1 px-6 border-l`,
+centro) | "formas de pagamento" (`px-8 py-6 border-l`, sublinhado, abre o modal).
+Parcelas e "formas de pagamento" são **12px `var(--ora-argila)`** (mutadas, abaixo
+do preço) — NÃO noz/14px. Tudo `var(--ora-font-mono)`; divisórias `border-l var(--ora-line-2)`.
+**Responsivo por CONTAINER QUERY (não viewport):** o `md:flex-row` por viewport
+QUEBRAVA no tablet — o rail é 50% da tela, então em ~1024 ele fica estreito e a
+parcela quebra palavra-a-palavra, mesmo o viewport sendo "grande". Solução: o rail
+(`#product-summary`) é `container-type:inline-size; container-name:pdp-summary`, e a
+linha de preço empilha por padrão (`flex-col`, `border-t`) virando 3 colunas só em
+`@container pdp-summary (min-width:30rem)` (`flex-row`, `border-l`). Responde à
+largura REAL do rail → resolve mobile, tablet 50% e desktop de uma vez. Sempre que
+um layout depender da largura de uma COLUNA (não da tela), prefira container query.
+**Empilhado = limpo, SEM divisórias internas** (ref. Paper 4TK-0): no estado stacked
+as células NÃO têm `border-t` entre si — só a `border-b` embaixo do bloco; paddings
+justos e assimétricos (preço `pt-4 pb-2`, parcelas `pb-3`, formas `pb-4`). As
+divisórias VERTICAIS (`border-left`) entram só no estado 3-colunas, dentro do
+`@container`. Filete interno em layout empilhado polui — guarde-o pro modo colunas.
+
+**Opções de variação = MESMO estilo do CTA secundário "Calcular frete":** as caixas
+P/M/G reusam o look do `.btn-secondary` (transparente, borda `argila/50%`, mono caps
+`argila`, sem raio). Classe `.ora-variation-opt` (cor/borda/fonte) + utilities de
+padding no `<label>`; selecionada = borda+texto espresso via
+`.ora-variation-opt:has(.product-variation-option-input:checked)`. O legend
+("Selecione a opção de…") é **mono medium 14px noz** (não sans/16px). ⚠️ NÃO deixe
+`border-t` no form das opções: a linha de preço já tem `border-b`, e as duas + o
+gap viram **borda dupla** no meio do rail (bug real). Uma divisória só.
+
+**Descrição = header de bottom-sheet ("SOBRE O PRODUTO") com o CORPO DENTRO do
+bloco bordado:** o `border-t/b` fica no `.ora-sobre` (o collapse), envolvendo título
+**e** corpo — o corpo (`.ora-sobre__body`, mono 14px noz) vive no `collapse-content`
+com `padding:0` (o DaisyUI não controla o espaçamento; o `pb-4` do body sim).
+`.ora-sheet-title` (Host Grotesk 500 caps espresso) + chevron Material 40px que gira
+ao abrir (`.ora-sobre:has(>input:checked) .ora-sobre__chevron`). A faixa de conteúdo
+(reviews) ainda usa `.ora-pdp-band` (collapse-plus eyebrow) — ver `global-styling.md`.
+
+**Empilhar fotos só no desktop (mantendo carousel no mobile):** o `carousel-embla`
+ganhou um opt-in **`data-disable-from="md"`** — acima do breakpoint ele NÃO
+inicializa o embla (e limpa os estilos inline dos slides), deixando o `.embla__container`
+empilhar via `md:flex-col` + hairlines (`border-top: var(--ora-line-2)` por slide).
+Abaixo de 768 o embla inicializa normal (swipe + dots `md:hidden`). É opt-in: outros
+carrosséis (hero, recomendações) não passam o atributo e seguem intactos. Verifique
+no preview com `el.shouldDisable()` / `el.emblaApi == null` (desktop) e
+`shouldDisable()===false` simulando `innerWidth` mobile.
+
+**Recomendados (PDP) usam o padding-block da VITRINE da home:** o `shelf/index` é
+compartilhado; o tipo `carousel` (recomendações/autocomplete) traz só `py-4` (curto),
+enquanto a vitrine (`grid-snap` → `.ora-shelf`) usa `padding-block:clamp(56px,5vw,72px)`.
+Pra padronizar a SEÇÃO de recomendados sem mexer no shelf global (o autocomplete quer
+o py-4 apertado), pôr `.ora-pdp-recos` no `#product-recommendations`:
+`{ padding-block:clamp(56px,5vw,72px) }` + `.ora-pdp-recos .container{ padding-block:0 }`
+(zera o py-4 interno p/ não somar). Regra: padding de SEÇÃO vai no wrapper da seção,
+não no componente reusável.
+
 ## Partial minicart (`path: "/partial/minicart"`)
 
 Partials exigem `_version: "3"`, usam `partial` no lugar de `html`, e o path
