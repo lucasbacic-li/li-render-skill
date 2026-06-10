@@ -452,3 +452,128 @@ colide com ela; ancore acima: `@media (max-width:767px){ .ora-hero__nav{ bottom:
 > `setTimeout` continue** (os slides avançam). Não é bug. Verifique o mecanismo por
 > `el.getAnimations()` (name/playState) + `document.visibilityState`, não pela
 > animação no screenshot. Mesma família de limitação do resize/viewport no preview.
+
+---
+
+## UGC "shoppable": post do Instagram → produto real (verificado)
+
+Transformar uma seção de comunidade/UGC estática (fotos + copy hardcoded) numa
+seção **comprável**, onde cada post curado linka ao **produto real mencionado**
+(URL/nome/preço/imagem **vivos**). Mesma mecânica do hero editorial.
+
+**Origem das imagens:** o LI Render só expõe dados por funções nomeadas — **não
+existe `get_instagram_feed`**. E URL do CDN do Instagram (`scontent…`) **expira** e
+hotlink viola ToS. Então a foto do post é **baixada e servida como asset** do tema
+(`assets/brand/ugc-N.jpg`, via `{% asset_url %}`). Curadoria manual é o preço de
+não ter API — e é desejável (qualidade > volume).
+
+**Padrão (espelha o hero):** config editorial em `properties` + produto vivo em
+`data`, um `get_products` por id.
+
+```jsonc
+// pages/index.json — bloco da seção
+{
+  "data": {
+    "community_p0": { "args": { "filter": { "product_ids": "<ID_A>" }, "paginate": false }, "function": "get_products" },
+    "community_p1": { "args": { "filter": { "product_ids": "<ID_B>" }, "paginate": false }, "function": "get_products" },
+    "community_p2": { "args": { "filter": { "product_ids": "<ID_C>" } },                      "function": "get_products" }
+  },
+  "type": "template",
+  "template": "pages/home/community.liquid",
+  "properties": {
+    "posts": [
+      { "image": "brand/ugc-1.jpg", "handle": "lala.movimento", "followers": "2.5K seguidores", "ig_url": "https://instagram.com/lala.movimento", "product_id": "<ID_A>" }
+      // … 1 entrada por card
+    ]
+  }
+}
+```
+
+```liquid
+{%- comment -%} pages/home/community.liquid — loop sobre props.posts, produto vivo via data {%- endcomment -%}
+{%- assign posts = props.posts -%}
+{%- for post in posts -%}
+  {%- assign i = forloop.index0 -%}
+  {%- assign product = data['community_p' | append: i].products[0] -%}
+  {%- if product -%}
+    {%- assign thumb = ctx.static_domain | append: '/120x120' | append: product.preview_images[0] -%}
+    <article class="ora-ugc">
+      <div class="ora-ugc__media">
+        <a class="ora-ugc__cover" href="{{ product.url }}" aria-label="Ver {{ product.name }}"></a>   {%- comment -%} foto → PDP (z-1, sob o crédito) {%- endcomment -%}
+        <img src="{% asset_url post.image %}" alt="{{ post.handle }} vestindo a marca" loading="lazy">
+        <a class="ora-ugc__cred" href="{{ post.ig_url }}" target="_blank" rel="nofollow noopener">  {%- comment -%} @handle → Instagram (z-2, acima do cover) {%- endcomment -%}
+          <span class="ora-ugc__avatar"><img src="{% asset_url post.image %}" alt=""></span>
+          <span class="ora-ugc__handle"><b>{{ post.handle }}</b><span>{{ post.followers }}</span></span>
+        </a>
+      </div>
+      <a class="ora-ugc__buy" href="{{ product.url }}">   {%- comment -%} pill: thumb + nome + PREÇO vivos → PDP {%- endcomment -%}
+        <span class="ora-ugc__thumb"><img src="{{ thumb }}" alt="" loading="lazy"></span>
+        <span class="ora-ugc__prod"><b>{{ product.name }}</b><span>{{ product.price.selling | format_number: "C" }}</span></span>
+      </a>
+    </article>
+  {%- endif -%}
+{%- endfor -%}
+```
+
+**Interações (dois alvos por card):** a foto (cover `position:absolute;inset:0;
+z-index:1`) e o pill levam à **PDP**; o crédito `@handle` (`z-index:2`, acima do
+cover) abre o **Instagram** em nova aba. Anchors herdam estilo de link — resetar
+`text-decoration:none;color:inherit` nos `.ora-ugc__cred/__buy`.
+
+**⚠️ Colisão de dedup com o hero (MUITO comum nesta seção).** O hero já pina
+produtos por id; se a comunidade reusar os MESMOS ids com args idênticos, os cards
+colididos **não renderizam** (data nula — ver o gotcha de dedup em
+`li-render.md`). Por isso o exemplo acima deixa `community_p2` **sem
+`paginate: false`**: quando o produto coincide com um já pinado, variar o
+`paginate` é o que destrava. Curar produtos distintos do hero é o ideal; em loja
+de teste com catálogo pequeno (poucos produtos, 3 já no hero) o reuso é
+inevitável e o ajuste de `paginate` resolve.
+
+### Mobile vira slider (scroll-snap nativo, sem JS — reusa o padrão da vitrine)
+
+Em vez de empilhar os cards no mobile, transforme o track num slider horizontal
+**idêntico ao `.ora-shelf__grid`** (swipe + peek, zero JS/Embla). Full-bleed via
+margem negativa do gutter do `.container` (o `--ora-gutter` é exatamente o
+`padding-inline` do container, então a margem negativa cancela e o peek sangra até
+a borda):
+
+```css
+@media (max-width:640px){
+  .ora-community__track{
+    flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;
+    overscroll-behavior-x:contain;scrollbar-width:none;-ms-overflow-style:none;
+    margin-inline:calc(var(--ora-gutter) * -1);
+    padding-inline:var(--ora-gutter);scroll-padding-inline:var(--ora-gutter);
+  }
+  .ora-community__track::-webkit-scrollbar{display:none;}
+  .ora-ugc{flex:0 0 82%;scroll-snap-align:start;}   /* 82% = card + peek do próximo */
+}
+```
+
+Verificar o slider no preview: `track.scrollWidth > clientWidth`,
+`scrollSnapType === 'x mandatory'`, e que o desktop continua `display:flex`
+3-up (`overflow-x:visible`, `snap:none`) — o resize do macOS trava `innerWidth`
+em ~500, mas isso já cruza o breakpoint de 640.
+
+### Altura igual: o "pé" do card precisa CRESCER, senão vaza o fundo do card
+
+Cards lado a lado num flex row esticam à altura do mais alto (`align-items:stretch`
+default). Se a foto é uniforme (`aspect-ratio`) mas o **rodapé** (o pill de compra,
+com fundo próprio) tem altura variável — porque o **nome do produto quebra em 2–3
+linhas** —, os cards de título curto ganham uma **faixa do fundo do CARD**
+(`--ora-linho`) embaixo do pill, em vez do pill preencher. Sintoma reportado:
+"gap de background-color na parte inferior".
+
+Correção (sem truncar nome): faça o rodapé **crescer** para absorver a sobra.
+
+```css
+.ora-ugc__media{ aspect-ratio:5/6; flex-shrink:0; }   /* foto uniforme, não encolhe */
+.ora-ugc__buy{ /* …estilo do pill… */ flex:1 0 auto; } /* pill cresce → fundo vai até a base */
+```
+
+Como a foto é uniforme, `total - foto` é igual em todos → **todos os pills ficam
+com a MESMA altura** e o fundo (`base-100`) preenche até a borda inferior. Vale pro
+3-up e pro slider mobile. Verificar: `buy.height` igual entre cards e
+`card.bottom - buy.bottom ≈ 0` (só a borda). Alternativa (mais compacta, mas
+trunca) seria `-webkit-line-clamp` no nome; o `flex:1 0 auto` é preferível por não
+cortar o título.

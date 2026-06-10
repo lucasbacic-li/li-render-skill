@@ -1,3 +1,16 @@
+{%- comment -%}
+  Comunidade (UGC shoppable) — cada post curado do Instagram liga ao PRODUTO real
+  mencionado. Mesma mecânica do hero:
+  - props.posts   → [{ image, handle, followers, ig_url, product_id }] : curadoria
+                    editorial (foto do post baixada p/ asset + dados do criador).
+  - data.community_p0… → get_products com filter.product_ids de UM id (string),
+                    1 data function por post (declaradas no pages/index.json).
+  Interação: foto + pill levam à PDP (product.url); o crédito (@handle) abre o
+  Instagram em nova aba. Nome/preço/thumb do pill vêm VIVOS do produto.
+{%- endcomment -%}
+
+{%- assign posts = props.posts -%}
+
 <section class="ora-community">
   <div class="container ora-community__inner">
     <div class="ora-community__head">
@@ -12,33 +25,44 @@
       </p>
     </div>
 
+    {%- if posts.size > 0 -%}
     <div class="ora-community__track">
-      {%- comment -%} Conteúdo editorial de prova social (assets de marca) {%- endcomment -%}
-      {%- assign handles = 'lala.movimento|2.5K seguidores,nadia|1K seguidores,flikshaw|107.8K seguidores' | split: ',' -%}
-      {%- assign photos = 'ugc-1.jpg,ugc-2.jpg,ugc-3.jpg' | split: ',' -%}
-      {%- assign prods = 'Conjunto Bandeau|Seu segundo corpo|packshot-bra.png,Calcinha Tanga|Conforto o dia todo|packshot-calcinha.png,Top Bandeau|Liberdade em forma|packshot-bra.png' | split: ',' -%}
-      {%- for photo in photos -%}
+      {%- for post in posts -%}
         {%- assign i = forloop.index0 -%}
-        {%- assign h = handles[i] | split: '|' -%}
-        {%- assign p = prods[i] | split: '|' -%}
-        {%- assign img = 'brand/' | append: photo -%}
-        {%- assign thumb = 'brand/' | append: p[2] -%}
-        <article class="ora-ugc">
-          <div class="ora-ugc__media">
-            <img src="{% asset_url img %}" alt="{{ h[0] }} vestindo Ora" loading="lazy">
-            <div class="ora-ugc__scrim"></div>
-            <div class="ora-ugc__cred">
-              <span class="ora-ugc__avatar"><img src="{% asset_url img %}" alt=""></span>
-              <span class="ora-ugc__handle"><b>{{ h[0] }}</b><span>{{ h[1] }}</span></span>
+        {%- assign prod_key = 'community_p' | append: i -%}
+        {%- assign product = data[prod_key].products[0] -%}
+        {%- if product -%}
+          {%- assign thumb_url = ctx.static_domain | append: '/120x120' | append: product.preview_images[0] -%}
+          <article class="ora-ugc">
+            <div class="ora-ugc__media">
+              {%- comment -%} Cover: a foto do post leva ao produto (z-1, sob o crédito) {%- endcomment -%}
+              <a class="ora-ugc__cover" href="{{ product.url }}" aria-label="Ver {{ product.name }}" data-metrics="select_product" data-mt-prod-id="{{ product.id }}" data-mt-prod-name="{{ product.name }}"></a>
+              <img src="{% asset_url post.image %}" alt="{{ post.handle }} vestindo Ora" loading="lazy">
+              <div class="ora-ugc__scrim"></div>
+              {%- comment -%} Crédito: abre o perfil/post no Instagram (z-2, acima do cover) {%- endcomment -%}
+              <a class="ora-ugc__cred" href="{{ post.ig_url }}" target="_blank" rel="nofollow noopener" aria-label="Ver {{ post.handle }} no Instagram">
+                <span class="ora-ugc__avatar"><img src="{% asset_url post.image %}" alt=""></span>
+                <span class="ora-ugc__handle"><b>{{ post.handle }}</b><span>{{ post.followers }}</span></span>
+              </a>
             </div>
-          </div>
-          <div class="ora-ugc__buy">
-            <span class="ora-ugc__thumb"><img src="{% asset_url thumb %}" alt=""></span>
-            <span class="ora-ugc__prod"><b>{{ p[0] }}</b><span>{{ p[1] }}</span></span>
-          </div>
-        </article>
+            <a class="ora-ugc__buy" href="{{ product.url }}" aria-label="Ver {{ product.name }}">
+              <span class="ora-ugc__thumb"><img src="{{ thumb_url }}" alt="" loading="lazy"></span>
+              <span class="ora-ugc__prod">
+                <b>{{ product.name }}</b>
+                <span>
+                  {%- if product.available and product.price.upon_request == false -%}
+                    {{ product.price.selling | format_number: "C" }}
+                  {%- else -%}
+                    Ver produto
+                  {%- endif -%}
+                </span>
+              </span>
+            </a>
+          </article>
+        {%- endif -%}
       {%- endfor -%}
     </div>
+    {%- endif -%}
   </div>
 </section>
 

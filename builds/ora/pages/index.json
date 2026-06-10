@@ -222,8 +222,61 @@
           "template": "pages/home/editorial.liquid"
         },
         {
+          "data": {
+            "community_p0": {
+              "args": {
+                "filter": {
+                  "product_ids": "401346199"
+                },
+                "paginate": false
+              },
+              "function": "get_products"
+            },
+            "community_p1": {
+              "args": {
+                "filter": {
+                  "product_ids": "401343357"
+                },
+                "paginate": false
+              },
+              "function": "get_products"
+            },
+            "community_p2": {
+              "args": {
+                "filter": {
+                  "product_ids": "401338894"
+                }
+              },
+              "function": "get_products"
+            }
+          },
           "type": "template",
-          "template": "pages/home/community.liquid"
+          "template": "pages/home/community.liquid",
+          "properties": {
+            "posts": [
+              {
+                "image": "brand/ugc-1.jpg",
+                "handle": "lala.movimento",
+                "followers": "2.5K seguidores",
+                "ig_url": "https://instagram.com/lala.movimento",
+                "product_id": 401346199
+              },
+              {
+                "image": "brand/ugc-2.jpg",
+                "handle": "nadia",
+                "followers": "1K seguidores",
+                "ig_url": "https://instagram.com/nadia",
+                "product_id": 401343357
+              },
+              {
+                "image": "brand/ugc-3.jpg",
+                "handle": "flikshaw",
+                "followers": "107.8K seguidores",
+                "ig_url": "https://instagram.com/flikshaw",
+                "product_id": 401338894
+              }
+            ]
+          }
         },
         {
           "type": "template",

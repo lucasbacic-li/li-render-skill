@@ -344,6 +344,21 @@ Catálogo:
 > (`"id1,id2"`), **array de strings** (`["id1","id2"]`) e **array de int**
 > (`[id1]`) retornam `total: 0`. Para N produtos específicos → **N data functions**,
 > uma por id (ex.: `hero_p0`, `hero_p1`, …), e no template `data["hero_p"+i].products[0]`.
+>
+> **⚠️ Data functions são DEDUPLICADAS por assinatura de args na MESMA página
+> (verificado).** Se dois `data.*` na página chamam `get_products` com args
+> **idênticos** (mesmo `product_ids` + mesmo resto), só o **primeiro** resolve; o
+> segundo vem **nulo** (a chave existe mas `.products`/`.total` saem vazios, nem
+> `0`). É page-wide: um `community_p0` colide com um `hero_p0` se os args forem
+> iguais — mesmo em componentes diferentes. Sintoma: card some, `data[key].total`
+> em branco. **Solução (ordem de preferência):**
+> 1. **Cure produtos distintos** — o jeito limpo: cada produto pinado por id
+>    aparece em UMA data function na página.
+> 2. **Se o reuso é inevitável**, varie a assinatura de args com uma mudança
+>    **VÁLIDA**: omitir `paginate: false` (ou trocar por `paginate: true`) muda a
+>    chave e resolve. **NÃO** use `size` para isso — `size` fora do range **4–100**
+>    (ex. `1`) **estoura o componente inteiro** (a seção some), e mesmo válido é
+>    frágil; prefira mexer no `paginate`.
 
 Ordenações: relevance (default), a-z, z-a, cheapest, most_expensive, discount,
 newest, best_selling, most_reviews.
