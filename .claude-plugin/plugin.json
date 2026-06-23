@@ -1,0 +1,23 @@
+{
+  "name": "li-render",
+  "displayName": "LI Render Store Kit",
+  "version": "1.0.0",
+  "description": "Pipeline de 3 skills para migrar/implementar lojas na Loja Integrada (LI Render): extrair o brand-kit de uma URL → desenhar comps + decisões de commerce (com gate de aprovação) → implementar o tema via li-cli, verificando o preview ao vivo contra os comps.",
+  "author": {
+    "name": "Lucas Bacic",
+    "email": "bacic.lucas@gmail.com"
+  },
+  "homepage": "https://github.com/lucasbacic-li/li-render-skill",
+  "repository": "https://github.com/lucasbacic-li/li-render-skill",
+  "keywords": [
+    "loja-integrada",
+    "li-render",
+    "li-cli",
+    "ecommerce",
+    "brand-kit",
+    "theme",
+    "tailwind",
+    "daisyui"
+  ],
+  "skills": "./skills/"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "li-render-skills",
+  "owner": {
+    "name": "Lucas Bacic",
+    "email": "bacic.lucas@gmail.com"
+  },
+  "metadata": {
+    "description": "Kit LI Render — pipeline de skills para migração e implementação de lojas na Loja Integrada (extrair marca → desenhar loja → implementar tema)."
+  },
+  "plugins": [
+    {
+      "name": "li-render",
+      "source": "./",
+      "description": "3 skills em pipeline: brand-kit-extractor (extrai) → store-design-composer (desenha + gate) → li-render-store-builder (implementa via li-cli, com orquestração por sub-agentes).",
+      "version": "1.0.0",
+      "author": { "name": "Lucas Bacic" }
+    }
+  ]
+}
