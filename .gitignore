@@ -1,6 +1,9 @@
 # dependências
 node_modules/
 
+# builds de caso (output específico de marca — vive fora da skill viva)
+builds/
+
 # OS / editor
 .DS_Store
 *.log

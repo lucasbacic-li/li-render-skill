@@ -51,7 +51,7 @@ Notas importantes:
   ok(document.querySelector('label[for="header-minicart-drawer-toggle"]'),'minicart ausente');
   const it=document.querySelectorAll('[data-testid="li-shelf-item"]');
   ok(it.length>0,'sem produtos na home');
-  ok(document.querySelector('.ora-closing, footer, [class*="footer"]'),'footer ausente');
+  ok(document.querySelector('footer, [class*="footer" i]'),'footer ausente');
   return {step:'1-home',pass:e.length===0,errs:e,shelfItems:it.length,firstProduct:it[0]?.getAttribute('href')}; })()
 ```
 
@@ -156,8 +156,8 @@ função — um fluxo "que funciona" mas visualmente quebrado **não** está apr
 `li-minicart-drawer-close`. Asserts em `data-testid` não quebram quando você muda
 classe/estilo — é o que torna o teste robusto a mudanças cosméticas.
 
-## Resultado da última execução (validação — tema ora)
+## Exemplo de execução íntegra (referência)
 
-✅ Home (4 produtos) → Busca "calcinha" (2 resultados) → PDP "Calcinha 02"
-(preço/botão/imagem) → add-to-cart (badge 0→1) → minicart (item, total R$ 95,00,
+✅ Home (N produtos) → Busca por um termo do catálogo (resultados) → PDP do 1º
+resultado (preço/botão/imagem) → add-to-cart (badge 0→1) → minicart (item, total,
 checkout). Caminho primário íntegro após o pass global de tipografia/cor/CTA.

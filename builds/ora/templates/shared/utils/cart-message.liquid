@@ -1,9 +1,0 @@
-{% if data.cart.messages.size > 0 %}
-  <script type="text/javascript" id="toast-trigger" hx-swap-oob="true">
-    if (typeof window.toast === 'function') {
-      {% for message in data.cart.messages %}
-        window.toast('{{ message | sanitize | raw }}', {type: 'warning'});
-      {% endfor %}
-    }
-  </script>
-{% endif %}

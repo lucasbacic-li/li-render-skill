@@ -58,7 +58,7 @@ o tipo de quebra do exemplo "max-width na categoria errada" (vira overflow):
 ```js
 (() => { const W=innerWidth,errs=[],warn=[],de=document.documentElement;
   if (de.scrollWidth > W+2) errs.push(`overflow horizontal: ${de.scrollWidth} > ${W}`);
-  [['header','header, [class*=header i]'],['main','main'],['footer','footer, .ora-closing, [class*=footer i]']]
+  [['header','header, [class*=header i]'],['main','main'],['footer','footer, [class*=footer i]']]
     .forEach(([n,s])=>{ const el=document.querySelector(s); if(!el){warn.push(`${n} ausente`);return;}
       const r=el.getBoundingClientRect(); if(r.width<1||r.height<1) errs.push(`${n} colapsado (${Math.round(r.width)}x${Math.round(r.height)})`); });
   document.querySelectorAll('.container').forEach(el=>{ const r=el.getBoundingClientRect();
