@@ -8,6 +8,28 @@ São **três skills que se encontram em contratos compartilhados**, chamadas **e
 **1** extrai a marca → **2** desenha a loja (com gate de aprovação do cliente) →
 **3** implementa o tema.
 
+## Instalação (plugin do Claude Code)
+
+Este repositório é um **marketplace de plugin** do Claude Code. Para instalar as 3
+skills de uma vez, dentro do Claude Code:
+
+```
+/plugin marketplace add lucasbacic-li/li-render-skill
+/plugin install li-render@li-render-skills
+```
+
+Atualizar quando sair versão nova:
+```
+/plugin marketplace update li-render-skills
+```
+
+As skills passam a ser descobertas automaticamente (disparam pela descrição) e podem
+ser chamadas explicitamente por `/li-render:brand-kit-extractor`,
+`/li-render:store-design-composer`, `/li-render:li-render-store-builder`.
+
+> **Pré-requisito da Skill 3** (implementação): a CLI `li-cli` instalada e logada na
+> conta do lojista — ver `skills/li-render-store-builder/references/li-render.md`.
+
 ## Fluxo das três skills
 
 ```mermaid
@@ -54,44 +76,48 @@ flowchart TB
 
 > O `.component-manifest.json` é a **memória entre execuções**: `locked` não reabre, e
 > um tema retomado começa do 1º componente não-`locked`. Detalhe em
-> `li-render-store-builder/references/implementation-plan.md` §4.
+> `skills/li-render-store-builder/references/implementation-plan.md` §4.
 
 ## Estrutura
 
 ```
-shared/                            ← CONTRATOS COMPARTILHADOS (sempre copie junto)
-├── brand-kit-spec/                ← contrato de DADO (1 → 2 → 3)
-│   ├── brand-kit.spec.md          ← formato do brand-kit (fonte da verdade)
-│   └── examples/brand.kit.example.json
-└── litheme-capabilities/          ← contrato de RESTRIÇÃO (2 desenha dentro, 3 implementa contra)
-    └── litheme-capabilities.spec.md
+.claude-plugin/                    ← MANIFESTOS do plugin/marketplace
+├── plugin.json                    ← o plugin "li-render" (aponta skills: ./skills/)
+└── marketplace.json               ← marketplace "li-render-skills" (source ./)
 
-brand-kit-extractor/               ← SKILL 1 (extrai) — URL → brand-kit
-├── SKILL.md                       ← 5 fases (capturar → destilar → montar → confirmar → entregar)
-└── references/                    ← url-ingestion, color-distillation, kit-output, platforms/
-
-store-design-composer/             ← SKILL 2 (desenha) — brand-kit → commerce + comps
-├── SKILL.md                       ← 4 fases (derivar → elicitar → comps → aprovação)
-└── references/                    ← commerce-surfaces (matriz de decisão), comp-authoring
-
-li-render-store-builder/           ← SKILL 3 (implementa) — kit + comps → tema LI
-├── SKILL.md                       ← 6 fases + redes de QA
-├── references/                    ← li-render, recipes, global-styling, litheme, QA…
-├── scripts/                       ← audit de forks de estilo + diff de screenshots
-└── assets/                        ← exemplos de manifesto (input + componentes)
+skills/                            ← as skills + contratos (descobertas pelo Claude Code)
+├── shared/                        ← CONTRATOS COMPARTILHADOS (irmão das skills)
+│   ├── brand-kit-spec/            ← contrato de DADO (1 → 2 → 3)
+│   │   ├── brand-kit.spec.md      ← formato do brand-kit (fonte da verdade)
+│   │   └── examples/brand.kit.example.json
+│   └── litheme-capabilities/      ← contrato de RESTRIÇÃO (2 desenha dentro, 3 implementa contra)
+│       └── litheme-capabilities.spec.md
+│
+├── brand-kit-extractor/           ← SKILL 1 (extrai) — URL → brand-kit
+│   ├── SKILL.md                   ← 5 fases (capturar → destilar → montar → confirmar → entregar)
+│   └── references/                ← url-ingestion, color-distillation, kit-output, platforms/
+│
+├── store-design-composer/         ← SKILL 2 (desenha) — brand-kit → commerce + comps
+│   ├── SKILL.md                   ← 4 fases (derivar → elicitar → comps → aprovação)
+│   └── references/                ← commerce-surfaces (matriz de decisão), comp-authoring
+│
+└── li-render-store-builder/       ← SKILL 3 (implementa) — kit + comps → tema LI
+    ├── SKILL.md                   ← 6 fases + redes de QA
+    ├── references/                ← li-render, recipes, global-styling, litheme, QA…
+    ├── scripts/                   ← audit de forks de estilo + diff de screenshots
+    └── assets/                    ← exemplos de manifesto (input + componentes)
 ```
+> As skills referenciam os contratos por `../shared/…` (a pasta `shared/` é irmã das
+> skills dentro de `skills/`). Ao mover/empacotar, mantenha esse layout.
 
 ## Os contratos compartilhados
 
 - **`brand-kit`** (dado) — fronteira 1→2→3. A Skill 1 escreve, a 2 enriquece
   (`commerce` + `comps/`), a 3 consome. `$schema: "li-render/brand-kit@1"`. Ver
-  [shared/brand-kit-spec/brand-kit.spec.md](shared/brand-kit-spec/brand-kit.spec.md).
+  [skills/shared/brand-kit-spec/brand-kit.spec.md](skills/shared/brand-kit-spec/brand-kit.spec.md).
 - **`litheme-capabilities`** (restrição) — o que o litheme renderiza barato. A Skill 2
   usa como guardrails de design; a 3 como alvo de implementação. Ver
-  [shared/litheme-capabilities/litheme-capabilities.spec.md](shared/litheme-capabilities/litheme-capabilities.spec.md).
-
-> **Empacotamento:** os references usam caminhos relativos `../shared/…`. Ao distribuir
-> uma skill isolada, **leve a pasta `shared/` junto** (senão os links quebram).
+  [skills/shared/litheme-capabilities/litheme-capabilities.spec.md](skills/shared/litheme-capabilities/litheme-capabilities.spec.md).
 
 ## Glossário rápido
 
@@ -126,5 +152,5 @@ li-render-store-builder/           ← SKILL 3 (implementa) — kit + comps → 
 ## Referências
 - Doc oficial do LI Render: `https://{slug}-preview.lojas.li/.docs/` — a mesma doc é
   servida no preview de **qualquer** conta; troque `{slug}` pelo slug da loja.
-- Notas técnicas: [li-render-store-builder/references/li-render.md](li-render-store-builder/references/li-render.md)
+- Notas técnicas: [skills/li-render-store-builder/references/li-render.md](skills/li-render-store-builder/references/li-render.md)
 ```
