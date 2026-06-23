@@ -34,13 +34,22 @@ duas pontas.** Para cada componente alterado, capture e confira:
 | ~1440px | desktop | proporção/escala |
 | ~1920px+ | wide | cresce com o gutter, sem virar linha gigante |
 
-Mínimo inegociável: **mobile (~390) + desktop (~1440)**. Para dirigir o Chrome
-conectado: `resize_window` → `navigate`/reload → screenshot, repetindo nas duas
-larguras. Armadilha já vista: `clamp(_, vw, _)` num drawer estreito vira o teto
-do clamp (grande demais) — use tamanho fixo em headers de drawer.
+Mínimo inegociável: **mobile (~390) + desktop (~1440)**.
 
-**Quando o `resize_window` não pega:** em algumas janelas do Chrome conectado o
-`resize_window` retorna sucesso mas o viewport **não muda** (fica travado na
+⚠️ **Qual método de resize — depende da superfície:**
+- **PREVIEW autenticado (`*.lojas.li`):** o Chrome MCP está **BLOQUEADO** para esse
+  domínio (ver `li-render.md` ~"O Chrome MCP NÃO serve mais para o preview"). Resize é
+  via **CDP `Emulation.setDeviceMetricsOverride`** (Chrome headless com cópia do perfil
+  do usuário) → reload → `Page.captureScreenshot`, repetindo nas duas larguras.
+  Confirme `window.innerWidth` antes de cada screenshot.
+- **Baseline do SITE PÚBLICO (origem):** aí sim use o Chrome MCP — `resize_window` →
+  `navigate`/reload → screenshot. (Chrome-MCP só serve para o site público de origem.)
+
+Armadilha já vista: `clamp(_, vw, _)` num drawer estreito vira o teto do clamp (grande
+demais) — use tamanho fixo em headers de drawer.
+
+**Quando o resize não pega (baseline, Chrome MCP):** em algumas janelas do Chrome
+conectado o `resize_window` retorna sucesso mas o viewport **não muda** (fica travado na
 largura do monitor — confira com `window.innerWidth`). Saídas: (a) abrir uma
 **aba nova** (`tabs_create_mcp`) — a janela pode nascer mais estreita; ou (b)
 verificar o responsivo pela **config no DOM**, que é determinística: as classes

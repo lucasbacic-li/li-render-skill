@@ -1,8 +1,9 @@
 # LI Render — CLI e Renderizador (notas de referência)
 
-> Material-base levantado a partir da doc oficial em
-> `https://ora-lingerie-preview.lojas.li/.docs/` (espelhada na loja preview da Ora).
-> Fonte de verdade para construir a skill de implementação de loja na Loja Integrada.
+> Material-base levantado a partir da doc oficial do LI Render, servida no preview
+> de **qualquer** conta em `https://{slug}-preview.lojas.li/.docs/` (troque `{slug}`
+> pelo slug da loja). Fonte de verdade para construir a skill de implementação de
+> loja na Loja Integrada.
 
 ## Modelo mental
 
@@ -80,10 +81,85 @@ Windows: mover p/ `%USERPROFILE%\li-cli\`, adicionar a pasta ao PATH, reabrir te
 - **`package.json` não vem no pull** — criar antes do `npm install` (conteúdo no
   topo de `assets/style/theme.css`; ver `litheme-structure.md`).
 - **Preview é autenticado por sessão de navegador.** `curl`/WebFetch na URL de
-  preview retornam a **página de login do painel** (HTTP 200, mas é o admin). Para
-  verificar de verdade, use um navegador logado no painel (o mesmo do `li-cli
-  login`) — ex.: dirigir o Chrome conectado e navegar à URL do preview. O toolbar
-  "Tema atual: <nome>" no canto confirma qual tema está sendo previsto.
+  preview retornam a **página de login do painel** (HTTP 200, mas é o admin). A
+  sessão vive nos **cookies do perfil do Chrome** em que você fez `li-cli login`.
+
+  ⚠️ **O Chrome MCP (navegador conectado) NÃO serve mais para o preview.** Verificado:
+  ele **bloqueia** `localhost`, `127.0.0.1`, `file://`, **`*.lojas.li`** (preview) e
+  `*.lojaintegrada.com.br` ("Navigation to this domain is not allowed"). Ou seja: dá
+  pra abrir o **site de origem** (capturar baseline), mas **não** o preview nem comps
+  locais. (Texto antigo dizia "dirija o Chrome conectado ao preview" — não vale mais.)
+
+  ✅ **Receita autônoma de verificação do preview autenticado (Chrome headless + CDP).**
+  Headless via Bash, usando uma **cópia do perfil do usuário** (carrega o cookie de
+  sessão do painel) e capturando via **CDP `Page.captureScreenshot`** (não o
+  `--screenshot` one-shot):
+  1. **Perfil:** copie `~/Library/Application Support/Google/Chrome/{Local State,
+     Default/Cookies,Default/Preferences}` para um `--user-data-dir` próprio (ex.
+     `/tmp/chrome-prof`). Rodando como o mesmo usuário do SO, os cookies (cifrados no
+     Keychain) **descriptografam**. Re-copie o `Cookies` se a sessão rotacionar.
+  2. **Lançar:** `Google Chrome --headless=new --disable-gpu --user-data-dir=/tmp/chrome-prof
+     --disk-cache-dir=/tmp/nc-<ts> --remote-debugging-port=9333 about:blank`. Use um
+     **`--disk-cache-dir` descartável por run** (NÃO use `--disk-cache-size=1` — quebra
+     o carregamento). Limpe `SingletonLock` antes.
+  3. **Fixar o tema (gotcha crítico):** navegue **limpo** para `…/.theme/<tema>` (isso
+     grava o cookie de seleção de tema e **redireciona p/ `/`**). **NÃO** acrescente
+     `?cb=…` à URL do preview: o cache-buster dispara um redirect que **dropa a seleção
+     `.theme/<tema>`** e você screenshota **silenciosamente o tema ativo/errado**.
+     Para outra rota, navegue depois para a rota **sem** `cb`. Confirme o tema lendo o
+     toolbar **"Tema atual: <nome>"** (canto inferior) — ou `getComputedStyle`.
+  4. **Capturar via CDP, não `--screenshot`:** o `--screenshot` one-shot dispara a foto
+     **antes do CSS cross-origin (CDN `theme.min.css`) aplicar** → você vê um render
+     "sem estilo/antigo" **falso** (sintoma clássico: byte-idêntico entre runs, cores
+     de token aplicadas mas regras de classe não). Em vez disso: conecte via WebSocket
+     (Node 22+ tem `WebSocket` global), `Page.navigate`, aguarde `Page.loadEventFired`
+     + `document.fonts.ready` + ~2.5s, então `Page.captureScreenshot`.
+  5. **Prova determinística:** quando a screenshot parecer errada, **NÃO confie nela** —
+     rode `Runtime.evaluate` de `getComputedStyle(el).<prop>` (ex.: bg do `<header>`,
+     valor de uma `--bk-*`). Isso separa "CSS não aplicou" de "artefato de captura".
+
+  > O `save_to_disk` do Chrome MCP grava **fora** do FS do agente (não some em
+  > `reference/`). A receita headless+CDP acima grava o PNG num caminho seu → dá pra
+  > `Read` direto e rodar o diff comp×preview por **componente** e por página.
+
+  ⚠️ **Gotchas de execução verificados (2º caso):**
+  - **Conecte ao TARGET DA PÁGINA, não ao browser.** `http://localhost:<port>/json/version`
+    devolve o endpoint do **browser** (sem domínio `Page`/`Runtime` → `captureScreenshot`
+    volta `undefined`). Use `http://localhost:<port>/json`, ache `type:"page"` e use o
+    `webSocketDebuggerUrl` dele.
+  - **Selecionar tema p/ uma ROTA específica = 2 navegações na MESMA sessão.** Headless
+    novo não tem a seleção `.theme/<nome>` (é por cookie/sessão). Navegue 1º para
+    `…/.theme/<nome>` (seta a seleção), espere ~3.5s, **depois** navegue para a rota
+    (`/categoria`, `/produto-x`) **sem** `?cb`. Um único navigate direto na rota mostra o
+    **tema ativo/errado**.
+  - **`theme sync -r` pode CAIR no meio** (`WebSocket invalid state 'Closed'`). Reinicie o
+    sync e **re-salve (nudge)** os arquivos editados após a queda — o sync **não faz
+    upload inicial**, só sobe o que mudar com ele rodando. (Minificação tira comentários:
+    nudge no `.min.css` por comentário NÃO muda o conteúdo → faça uma mudança de regra
+    real, ou nudge o `.liquid`/`.json`.)
+
+  ⚠️ **Gotchas de IMPLEMENTAÇÃO do cliente CDP (ao escrever o script de captura) — 3º caso:**
+  - **Forma da resposta CDP: `{id, result:{…}}`, e `Runtime.evaluate` ANINHA mais um
+    `result`.** O valor do eval está em **`msg.result.result.value`** (o `result` externo é
+    o envelope CDP; o interno é o RemoteObject). Ler `msg.result.value` devolve `undefined`
+    **silenciosamente** (sem erro) — bug clássico que faz parecer que "o eval não roda".
+    `Page.captureScreenshot` é só um nível: `msg.result.data`.
+  - **Desligue o cache do cliente**: `Network.enable` + `Network.setCacheDisabled{true}`
+    antes de navegar — senão o headless serve `theme.min.css` cacheado e uma regra nova
+    "não aparece" entre iterações (mesmo com o preview server sem cache).
+  - **Screenshot ISOLADO por seletor (diff de componente)**: rode um eval que faz
+    `el.scrollIntoView()` + `getBoundingClientRect()` e passe `{clip:{x,y,width,height,
+    scale:1}}` ao `Page.captureScreenshot`. Vira o "screenshot do componente isolado" que
+    o §4d exige, sem recortar a mão.
+  - **`npm run watch:css` NÃO sobrevive em background headless** (sai após o build inicial,
+    sem TTY). Na orquestração: rode **`npm run build:css` manualmente** após cada edição de
+    CSS; o `sync -r` (esse sim persiste) sobe o `.min.css`. Não dependa do watch num
+    pipeline de sub-agentes.
+  - **Estado oculto (drawer/menu) p/ o sweep**: o `captureScreenshot` do cliente dispara
+    DEPOIS de um eval-less navigate, então p/ fotografar um drawer ABERTO escreva um script
+    que (1) navega, (2) `evaluate` marca o toggle (`#…-drawer-toggle`.checked=true) + sleep,
+    (3) só então captura/varre. Adicionar 1 item ao carrinho p/ ver o minicart cheio: ache
+    `[data-id="product-buy-url"]`, `.click()`, espere ~2.5s.
 - **`build:css` real:** `npx @tailwindcss/cli -i assets/style/theme.css -o
   assets/style/theme.min.css --minify` (Tailwind v4 + DaisyUI v5).
 - **Sessão expira.** Depois de um tempo, `push`/`sync` falham com "Session
@@ -120,7 +196,7 @@ produção**. O fluxo real é em dois passos:
 li-cli theme deploy <tema-dev> -t <nome-prod>   # cria cópia OTIMIZADA em produção
 li-cli theme promote <nome-prod>                # torna esse tema ATIVO na loja
 ```
-Ex. (loja ora): `theme deploy ora -t ora-loja` → `theme promote ora-loja`.
+Ex.: `theme deploy <tema-dev> -t <tema-prod>` → `theme promote <tema-prod>`.
 - `deploy` copia pages/templates/assets do dev p/ um tema novo de produção, com
   otimizações; `-t` nomeia o alvo (sem `-t`, gera nome). Sem `--global` é deploy
   normal (não publica como tema global de marketplace).
@@ -128,17 +204,18 @@ Ex. (loja ora): `theme deploy ora -t ora-loja` → `theme promote ora-loja`.
     deploying… Reference ID: … The incomplete theme has been deleted." Visto e
     **resolvido só re-rodando** o mesmo comando. Tente de novo antes de investigar.
   - 🔴 **NÃO reuse um `-t` que já existe / que teve deploy falho — use NOME NOVO.**
-    Caso real: 1º `deploy ora -t ora-loja` **falhou** ("incomplete theme deleted");
-    o 2º gravou por cima do mesmo `ora-loja`. Resultado: produção renderizou com
-    **cores/fontes certas mas SEM layout** — `.ora-shelf__grid`, paddings, grid
-    (tudo em `@layer utilities`) **não aplicavam**; só variáveis `:root` sobreviviam.
-    O CSS servido era **md5-idêntico** ao do dev (que renderiza certo no preview) e
-    vinha `200 text/css` — mas com **`x-cache: Hit from cloudfront`**: a borda servia
-    ao browser uma versão ruim/parcial (parse dos blocos `@layer` quebrava no meio),
-    diferente do que o `curl` pegava. **Fix que funcionou:** `deploy ora -t
-    ora-loja-v3` (nome novo ⇒ **URLs de asset novas** `/ora-loja-v3/…` ⇒ cache de
-    borda limpo ⇒ parse correto). Depois `promote ora-loja-v3`. Regra: **cada deploy
-    de correção vai para um nome incrementado** (`-v2`, `-v3`); não sobrescreva.
+    Caso real (ver snapshot): 1º `deploy <tema> -t <tema-prod>` **falhou**
+    ("incomplete theme deleted"); o 2º gravou por cima do mesmo `<tema-prod>`.
+    Resultado: produção renderizou com **cores/fontes certas mas SEM layout** —
+    classes de grid/paddings (tudo em `@layer utilities`) **não aplicavam**; só
+    variáveis `:root` sobreviviam. O CSS servido era **md5-idêntico** ao do dev (que
+    renderiza certo no preview) e vinha `200 text/css` — mas com **`x-cache: Hit
+    from cloudfront`**: a borda servia ao browser uma versão ruim/parcial (parse dos
+    blocos `@layer` quebrava no meio), diferente do que o `curl` pegava. **Fix que
+    funcionou:** `deploy <tema> -t <tema-prod>-v3` (nome novo ⇒ **URLs de asset
+    novas** `/<tema-prod>-v3/…` ⇒ cache de borda limpo ⇒ parse correto). Depois
+    `promote <tema-prod>-v3`. Regra: **cada deploy de correção vai para um nome
+    incrementado** (`-v2`, `-v3`); não sobrescreva.
   - **Antes do `deploy`, faça `push` COMPLETO do dev (não confie no `sync`).** O
     `sync` só envia arquivos que mudaram *durante* a sessão; o tema dev no servidor
     pode estar **defasado** do local. No caso real, um `push` antes do deploy
@@ -181,7 +258,7 @@ Ex. (loja ora): `theme deploy ora -t ora-loja` → `theme promote ora-loja`.
     - **Estilo computado (prova determinística)** via CDP: subir headless com
       `--remote-debugging-port=9222`, e por WebSocket (Node 22+ tem `WebSocket`
       global — sem npm) rodar `Runtime.evaluate` de
-      `getComputedStyle(document.querySelector('.ora-shelf__grid')).display` etc.
+      `getComputedStyle(document.querySelector('<seletor-de-grid>')).display` etc.
       Foi assim que se provou `display:block` (quebrado) vs `grid` (ok) em prod.
   - **Sintoma "cores/fontes ok mas layout sumiu" = `@layer utilities` não aplicando**
     (vars `:root` sobrevivem, regras de classe não). Em prod com CSS idêntico ao dev,
@@ -422,7 +499,7 @@ Tag `asset_url`:
 > `document.fonts.check()` ENGANA, retorna true mesmo com erro — cheque `.status`).
 > **Duas saídas corretas:**
 > 1. **Google Fonts via `<link>` no `<head>`** (recomendado se a fonte existe lá —
->    Lusitana, Host Grotesk, Geist Mono existem): mesmo padrão do Material Symbols do
+>    cheque cada família do kit em fonts.google.com): mesmo padrão do Material Symbols do
 >    litheme (`media="print" onload="this.media='all'"` + `<noscript>` + `display=swap`).
 >    Serve **woff2 + unicode-range** (melhor no mobile que TTF variable). Verificado: as
 >    3 viram `status:"loaded"`.
@@ -437,7 +514,7 @@ Inspecionar config do lojista: `{{ layout_attributes | json }}`
 ---
 
 ## Índice da doc oficial (para aprofundar)
-Base: `https://ora-lingerie-preview.lojas.li/.docs/`
+Base: `https://{slug}-preview.lojas.li/.docs/` (qualquer conta serve a mesma doc)
 - Guias: `getting-started`, `theme-preview`, `page-settings`, `custom-pages`,
   `partials`, `apps`, `store-routes`, `layout-attributes`, `liquid-filters`
 - Tags: `custom_tags/asset_url`

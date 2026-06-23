@@ -1,14 +1,19 @@
-# Contrato de input — a pasta de marca
+# Contrato de input — pasta de marca rica (FALLBACK)
 
-A skill recebe uma **pasta de artefatos de marca** e dela extrai um **perfil de
-marca** normalizado. Esta pasta é o input primário. O contrato é **flexível por
-design**: a skill se adapta a qualquer organização via auto-descoberta, e um
+> ⚠️ **Este é o caminho de fallback.** O input canônico da skill é o **brand-kit**
+> (`../../shared/brand-kit-spec/brand-kit.spec.md`) — leve, já normalizado pela
+> Skill 1 e desenhado pela Skill 2. Use a auto-descoberta abaixo só quando **não
+> houver brand-kit**, mas existir uma **pasta de marca rica** pré-existente. Nesse
+> caso, extraia o mesmo perfil de papéis e, se faltar o bloco `commerce`/comps,
+> rode a Skill 2 antes de implementar.
+
+Quando cair no fallback, a skill recebe uma **pasta de artefatos de marca** e
+dela extrai um **perfil de marca** normalizado. O contrato é **flexível por
+design**: adapta-se a qualquer organização via auto-descoberta, e um
 `brand.manifest.json` opcional remove ambiguidade.
 
-> Referência viva: a pasta da Ora
-> (`~/Documents/Claude/Branding Ora/ora_brand_system/`) é o exemplo canônico de
-> uma pasta bem-formada. Mas **nada** da estrutura dela é obrigatório — outras
-> marcas organizam diferente, e a skill precisa funcionar mesmo assim.
+> Nenhuma estrutura específica é obrigatória — cada marca organiza a pasta de um
+> jeito, e a skill se adapta via auto-descoberta mesmo assim.
 
 ## O que a skill precisa extrair (o perfil de marca)
 
@@ -44,8 +49,8 @@ de referência). Procure por:
   `colors.json`, `tokens/*.json`, `*tokens*`). Padrão observado: paletas nomeadas
   (`primary`, `extended`) com `_meta.role`/`_meta.mood`, mais `gradients`.
 - **CSS custom properties**: arquivos `.css` com variáveis tipo `--<prefixo>-<nome>: #hex`
-  e papéis semânticos (`--*-surface`, `--*-ink`, `--*-accent`). Padrão Ora:
-  `colors_and_type.css` com prefixo `--ora-`.
+  e papéis semânticos (`--*-surface`, `--*-ink`, `--*-accent`). (Ex.: um arquivo de
+  tokens com prefixo próprio da marca, tipo `--<marca>-`.)
 - Derive os **papéis semânticos** (surface, surface-dark, ink, ink-inverse,
   muted, accent). Se a marca já os declara, use; senão, infira a partir da
   paleta (mais claro→surface, mais escuro→ink, cor de destaque→accent).
@@ -54,8 +59,8 @@ de referência). Procure por:
 - No mesmo CSS de tokens: variáveis `--*-font-*` (famílias), `--*-text-*`
   (escala), `--*-*-tracking`/`--*-*-leading`.
 - `@font-face` em arquivos `fonts.css` apontando para os arquivos de fonte.
-- Padrão Ora: serif (headline romântica), grotesk (headline geométrica), mono
-  (corpo). Mapeie cada família a um papel (headline / body / mono-accent).
+- Mapeie cada família a um papel (display / heading / body / mono). Ex. comum:
+  serif p/ display, grotesk p/ heading, mono p/ corpo ou dados.
 
 ### Fontes
 - Arquivos `.ttf`/`.otf`/`.woff2` (frequentemente em `fonts/<Familia>/`).
@@ -65,8 +70,7 @@ de referência). Procure por:
 ### Logos e símbolos
 - SVGs com nomes tipo `logo*`, `logotype*`, `symbol*`, `brand*`. Prefira SVG
   (recolorível, escalável). Identifique variantes por sufixo:
-  vertical/horizontal, e claro/escuro (ex.: `-espresso` escuro, `-cream`/`-linho`
-  claro).
+  vertical/horizontal, e claro/escuro (ex.: sufixos como `-dark`/`-light`).
 
 ### Layouts de referência (intenção de design)
 - `.html` que representam páginas (home, produto…), normalmente em
@@ -87,35 +91,34 @@ completo em `../assets/brand.manifest.example.json`.
 ```json
 {
   "$schema": "li-render-store-builder/brand-manifest",
-  "name": "Ora Lingerie",
-  "store": { "handle": "ora-lingerie", "theme_name": "ora" },
+  "name": "Nome da Marca",
+  "store": { "handle": "minha-loja", "theme_name": "meu-tema" },
   "colors": {
-    "tokens": "agent/visual/tokens/colors.json",
-    "css_vars": "agent/visual/colors_and_type.css",
+    "tokens": "visual/tokens/colors.json",
+    "css_vars": "visual/colors_and_type.css",
     "roles": {
-      "surface": "linho", "surface_dark": "espresso",
-      "ink": "espresso", "ink_inverse": "linho",
-      "muted": "noz", "accent": "tangerina"
+      "surface": "claro", "surface_dark": "escuro",
+      "ink": "escuro", "ink_inverse": "claro",
+      "muted": "neutro-medio", "accent": "destaque"
     }
   },
   "typography": {
-    "css_vars": "agent/visual/colors_and_type.css",
-    "fontface": "agent/visual/fonts/fonts.css",
-    "roles": { "headline": "serif", "subhead": "grotesk", "body": "mono" }
+    "css_vars": "visual/colors_and_type.css",
+    "fontface": "visual/fonts/fonts.css",
+    "roles": { "display": "serif", "heading": "grotesk", "body": "mono" }
   },
-  "fonts_dir": "agent/visual/fonts",
+  "fonts_dir": "visual/fonts",
   "logos": {
-    "dir": "agent/visual/assets",
+    "dir": "visual/assets",
     "primary": "logotype.svg",
     "symbol": "symbol.svg",
-    "variants": { "dark": "logotype-espresso.svg", "light": "logotype-linho-cream.svg" }
+    "variants": { "dark": "logotype-dark.svg", "light": "logotype-light.svg" }
   },
   "reference_layouts": [
-    "agent/visual/artifacts/web/index-ciclo.html",
-    "agent/visual/artifacts/web/index.html"
+    "visual/artifacts/web/index.html"
   ],
-  "verbal_dir": "agent/verbal",
-  "imagery_dir": "agent/visual/assets"
+  "verbal_dir": "verbal",
+  "imagery_dir": "visual/assets"
 }
 ```
 

@@ -1,0 +1,69 @@
+{
+  "$schema": "li-render/component-manifest@1",
+  "_doc": "Manifesto de COMPONENTES — fonte da verdade do que está travado (locked). O orquestrador (thread principal da Skill B) lê/escreve; cada sub-agente de componente devolve o veredito que vira uma entrada aqui. Componente 'locked' NÃO se reabre nem se re-lê. Ver references/implementation-plan.md §4. Genérico: a lista de components/gates depende da loja, não destes literais.",
+  "theme": "<nome-do-tema>",
+  "components": [
+    {
+      "component": "header",
+      "comp": "comps/components/header.html",
+      "status": "locked",
+      "files": [
+        "templates/shared/components/header/index.liquid",
+        "templates/shared/components/header/components/navbar/navigation.liquid"
+      ],
+      "structure_changes": [
+        "adicionado topbar de anúncio (faixa superior)",
+        "nav de categorias ligada ao header (estava fora do index)",
+        "utilidades rotuladas (Atendimento / Minha conta) como o comp pede"
+      ],
+      "global_rules_added": [],
+      "evidence": {
+        "diff_desktop": "header isolado ~1440 bate com o comp (3 faixas)",
+        "diff_mobile": "header isolado ~390 ok (busca colapsa, nav vira drawer)",
+        "contrast": "limpo; flag aceito: links de nav no secondary (cor de marca intencional)"
+      },
+      "deviations": [
+        { "what": "busca vira ícone no mobile", "why": "modernização do litheme, não cabe inline em 390" }
+      ],
+      "blockers": []
+    },
+    {
+      "component": "product-card",
+      "comp": "comps/components/product-card.html",
+      "status": "in-progress",
+      "files": ["templates/shared/components/product-card/index.liquid"],
+      "structure_changes": [],
+      "global_rules_added": ["bg-base-100 na raiz do <product-card> (tile branco) — theme.css"],
+      "evidence": { "diff_desktop": null, "diff_mobile": null, "contrast": null },
+      "deviations": [],
+      "blockers": []
+    },
+    {
+      "component": "footer",
+      "comp": "comps/components/footer.html",
+      "status": "todo",
+      "files": [],
+      "structure_changes": [],
+      "global_rules_added": [],
+      "evidence": { "diff_desktop": null, "diff_mobile": null, "contrast": null },
+      "deviations": [],
+      "blockers": []
+    },
+    {
+      "component": "buy-box",
+      "comp": "comps/components/buy-box.html",
+      "status": "blocked",
+      "files": [],
+      "structure_changes": [],
+      "global_rules_added": [],
+      "evidence": { "diff_desktop": null, "diff_mobile": null, "contrast": null },
+      "deviations": [],
+      "blockers": ["depende de decisão do usuário: painel branco sticky vs. solto no fundo navy"]
+    }
+  ],
+  "gates": {
+    "home": { "status": "pending", "contrast": null, "mobile": null },
+    "plp":  { "status": "pending", "contrast": null, "mobile": null },
+    "pdp":  { "status": "pending", "contrast": null, "mobile": null }
+  }
+}

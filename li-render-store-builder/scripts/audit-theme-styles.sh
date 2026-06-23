@@ -23,7 +23,7 @@ show(){ local o; o=$(cat); [ -n "$o" ] && echo "$o" || echo "ok — nenhum"; }
 b "1. Cores hardcoded em classes (use tokens: text-base-content, bg-base-100, bg-neutral)"
 g 'text-(black|white)|bg-(black|white)([ "/]|$)' | show
 
-b "2. Ícone SVG com cor FIXA (use fill=\"currentColor\" p/ herdar o token Ora; máscara #D9D9D9 ignorada)"
+b "2. Ícone SVG com cor FIXA (use fill=\"currentColor\" p/ herdar o token da marca; máscara #D9D9D9 ignorada)"
 g 'fill="#[0-9a-fA-F]{3,6}"|stroke="#[0-9a-fA-F]{3,6}"' | grep -vi '#D9D9D9' | show
 echo "   ↑ hexes da paleta ANTIGA (litheme) viram off-brand pós-reskin: #0846EF azul, #27A47D verde, #FF6265 vermelho, #101828/#1C1B1F cinza."
 
@@ -33,7 +33,7 @@ g 'style="[^"]*(color|background)' | grep -v '{{' | show
 b "4. Raio explícito (a forma vem de --radius-*; rounded-* é fork — exceto pill/avatar intencional)"
 g 'rounded-(none|xs|sm|md|lg|xl|2xl|3xl|box|field)([ "]|$)' | show
 
-b "5. Fonte por bloco (use papéis: .ora-serif / .ora-grotesk / .ora-mono ou h1-h6)"
+b "5. Fonte por bloco (use papéis: .bk-display / .bk-heading / .bk-mono ou h1-h6)"
 g 'font-(serif|mono)([ "]|$)|font-\[' | show
 
 b "6. Título com estilo de CORPO (<p>/<span> grande+peso = deveria ser h1-h6)"
@@ -42,24 +42,29 @@ g '<(p|span)[^>]*text-(lg|xl|2xl|3xl)[^>]*font-(medium|semibold|bold)' | show
 b "7. Tamanho fixo grande em heading (compete com a escala global; prefira o sistema/clamp)"
 g '<h[1-6][^>]*text-(xl|2xl|3xl|4xl|5xl)' | show
 
-b "8. CTA possivelmente ad-hoc (cor de ação sem a classe .btn / .ora-cta-text)"
+b "8. CTA possivelmente ad-hoc (cor de ação sem a classe .btn / .bk-cta-text)"
 g 'bg-primary|bg-accent' | grep -vE '\bbtn\b' | show
 
-b "9. Tracking LITERAL em template (caixa-alta deve usar tracking-[var(--ora-tracking-caps)] ou um papel .ora-*)"
+b "9. Tracking LITERAL em template (caixa-alta deve usar tracking-[var(--bk-tracking-caps)] ou um papel .bk-*)"
 g 'tracking-(tighter|tight|normal|wide|wider|widest)([ "]|$)' | show
 
-b "10. Papel MONO CAIXA-ALTA com tracking LITERAL no CSS (deveria puxar --ora-tracking-caps; vira escala caps divergente)"
+b "10. Papel MONO CAIXA-ALTA com tracking LITERAL no CSS (deveria puxar --bk-tracking-caps; vira escala caps divergente)"
 CSS=$(ls "$DIR"/assets/style/theme.css 2>/dev/null)
 if [ -n "$CSS" ]; then
   # linha de papel que é MONO + uppercase E declara letter-spacing literal (não var()).
   # Grotesk-caps (nomes de produto, drawer-titles) usam tracking próprio apertado e
   # NÃO entram na escala mono — por isso o filtro exige font-mono.
   grep -nE 'text-transform:uppercase' "$CSS" 2>/dev/null \
-    | grep -E 'font-mono|--ora-font-mono' \
+    | grep -E 'font-mono|--bk-font-mono' \
     | grep -E 'letter-spacing:[[:space:]]*[.0-9]' | show
 else
   echo "ok — theme.css não encontrado (pulando check CSS)"
 fi
+
+b "11. BORDA/OUTLINE clara em painel flutuante (dark-chrome: vira borda branca AGRESSIVA sobre navy → use hairline tokenizada --bk-line-on-dark)"
+g 'border-white|outline-black|outline-white|border-(base-200|gray-[0-9])|/(10|20)( |"|$)' \
+  | grep -iE 'mega|dropdown|menu|autocomplete|suggest|floating|popover|drawer|sheet|tooltip' | show
+echo "   ↑ Em reskin dark-chrome, bordas claras do litheme (border-white/20, outline-black/10, border-base-200) gritam sobre o navy. Trocar por var(--bk-line-on-dark) (rgba branco .12–.16) ou border-transparent+sombra. Verifique nos estados ABERTOS (hover/focus)."
 
 b "COMO LER"
 cat <<'EOF'
@@ -69,5 +74,5 @@ Para cada achado pergunte: "isto é global ou fork?"
   • Botão / input         → herdar de .btn / .input global.
   • Título                → h1-h6 (sistema), não <p>/<span> com peso.
 Fork só se aceita em layout genuinamente único — e mesmo aí, puxando
-cor/tipo/CTA do sistema (tokens, .ora-serif, .btn), nunca valores novos.
+cor/tipo/CTA do sistema (tokens, .bk-display, .btn), nunca valores novos.
 EOF

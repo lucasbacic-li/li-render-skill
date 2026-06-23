@@ -1,6 +1,6 @@
 # Estrutura real do litheme
 
-> Capturado de um `li-cli theme create` + `theme pull` reais (conta ora-lingerie,
+> Capturado de um `li-cli theme create` + `theme pull` reais (uma conta real,
 > litheme v49, CLI `20260519.2`). Esta é a árvore concreta que o `create`
 > duplica — a base que a skill reskina. **Corrige** vários pontos onde a doc
 > pública descreve só o contrato abstrato.
@@ -18,7 +18,7 @@
 ## Árvore (raiz)
 
 ```
-ora/
+<tema>/                       # nome do tema criado (= store.theme_name do brand-kit)
 ├── theme.json                # { _version:"1", name, environment:"development" }
 ├── pages/                     # 24 arquivos: 7 rotas + 17 partials
 ├── templates/                 # ~118 .liquid, profundamente componentizados
@@ -130,6 +130,20 @@ Estrutura:
 > `body { background-color: var(--color-neutral) }` — `neutral` é o fundo da
 > página, não um cinza escuro. Mapear com cuidado.
 
+> ⚠️ **Settings do painel sobrescrevem os tokens do tema.** O
+> `templates/shared/components/head/style-general.liquid` injeta um
+> `<style id="custom-theme-style">` com `--color-*`/`--radius-*` vindos de
+> `layout_attributes.render.style.*` (as cores configuradas no **painel da loja**),
+> num bloco `:root` **inline no head** — que pode vencer o `theme.min.css`. Em loja de
+> teste vazia os `{% if %}` não renderizam nada (sem efeito); mas numa loja com cores
+> de painel definidas, **elas ganham do seu reskin**. Sinal: o token certo está no CSS
+> mas o preview mostra outra cor. Saída: limpar/alinhar as cores no painel, ou (se o
+> tema deve mandar) não depender desse override. Cheque com `getComputedStyle`.
+
+> Esse mesmo `style-general.liquid` carrega a **fonte** (um `<link>` Google) e linka
+> o `theme.min.css`. É o ponto a editar para trocar a família (ver `global-styling.md`
+> → "GREP primeiro: o mecanismo de fonte varia por versão").
+
 > ⚠️ **Tailwind v4 compila só as classes encontradas nos `@source` no momento do
 > build.** Se você editar um template e usar uma classe utilitária **nova** (ex.:
 > `h-9`, `md:h-11`) que não aparecia em nenhum outro lugar, ela **não estará** no
@@ -146,11 +160,12 @@ Estrutura:
 > @utility container { @apply max-w-container w-full mx-auto px-4; }   /* só 16px de gutter */
 > ```
 > Em telas largas isso deixa margem morta e prateleiras/banners "limitados". Para
-> um layout fluido que **cresce com a viewport** (como o `index.html` da marca,
-> que usa gutter `clamp(20px,5vw,72px)` sem cap rígido), redefina o `container`:
+> um layout fluido que **cresce com a viewport** (quando o comp da marca pede
+> gutter responsivo tipo `clamp(20px,5vw,72px)` sem cap rígido), redefina o
+> `container`:
 > ```css
-> @utility max-w-container { max-width: var(--ora-container-max, 120rem); } /* ~1920px */
-> @utility container { @apply max-w-container w-full mx-auto; padding-inline: var(--ora-gutter); }
+> @utility max-w-container { max-width: var(--bk-container-max, 120rem); } /* ~1920px */
+> @utility container { @apply max-w-container w-full mx-auto; padding-inline: var(--bk-gutter); }
 > ```
 > E ajuste os componentes que **sobrescrevem** o padding do container com utilities
 > Tailwind (elas vencem o `padding-inline`): o shelf usa `px-0 md:px-4` → troque por
@@ -186,7 +201,7 @@ mega-menu + dropdowns por hover via CSS `.categories-container*`/`.mega-menu`),
 `components/search/` (input desktop **ou** drawer mobile), `components/navbar/`
 (drawer de menu mobile, conteúdo async via `/partial/header/menu-mobile`).
 
-**Reestruturar p/ logo central + categorias inline (modelo do index.html):**
+**Reestruturar p/ logo central + categorias inline (quando o comp da Skill 2 pede esse header):**
 - Reescrever `header/index.liquid` como **grid 3 colunas** (`1fr auto 1fr`):
   categorias à esquerda, logo no centro, utilidades à direita. No mobile, esconder
   nav+utils (`@media max-width:767px`) — sobra o logo; a floating-bar assume.
@@ -201,9 +216,10 @@ mega-menu + dropdowns por hover via CSS `.categories-container*`/`.mega-menu`),
   no header desktop abre os mesmos drawers (não precisa do input inline). O badge
   do carrinho usa `<span class="header-minicart-totalitems">` (o webc atualiza).
 - **Floating-bar**: manter a interação do litheme; restilizar só a utility
-  `floating-bar-style` (era pill branco glassy → linho translúcido + hairline
-  argila + ícones espresso). Tudo herda DaisyUI, então o minicart/drawers já vêm
-  on-brand; polir labels (ex.: header "SUA SACOLA" mono uppercase, borda argila).
+  `floating-bar-style` (default = pill branco glassy → reskinar com os papéis do
+  kit: fundo `surface` translúcido + hairline `line` + ícones `ink`). Tudo herda
+  DaisyUI, então o minicart/drawers já vêm on-brand; polir labels (ex.: header do
+  minicart no papel de subtítulo da marca, borda `line`).
 
 ## Templates: como o estilo cascateia
 

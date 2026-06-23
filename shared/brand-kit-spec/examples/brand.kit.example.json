@@ -1,0 +1,116 @@
+{
+  "$schema": "li-render/brand-kit@1",
+  "version": "1.0",
+  "name": "Ateliê Brisa",
+  "source": {
+    "type": "url",
+    "ref": "https://ateliebrisa.com.br",
+    "captured_at": "2026-06-22"
+  },
+  "store": {
+    "handle": "atelie-brisa",
+    "theme_name": "brisa"
+  },
+  "colors": {
+    "palette": {
+      "ink":    { "hex": "#1F1B16", "rgb": [31, 27, 22] },
+      "paper":  { "hex": "#FAF6EF", "rgb": [250, 246, 239] },
+      "sand":   { "hex": "#EFE7DA", "rgb": [239, 231, 218] },
+      "stone":  { "hex": "#6F665B", "rgb": [111, 102, 91] },
+      "line":   { "hex": "#E0D8CA", "rgb": [224, 216, 202] },
+      "terra":  { "hex": "#B0654A", "rgb": [176, 101, 74] }
+    },
+    "roles": {
+      "surface": "paper",
+      "surface_alt": "sand",
+      "surface_dark": "ink",
+      "ink": "ink",
+      "ink_muted": "stone",
+      "ink_inverse": "paper",
+      "line": "line",
+      "accent": "terra",
+      "accent_ink": "paper"
+    },
+    "gradients": {
+      "dusk": ["#B0654A", "#EFE7DA"]
+    }
+  },
+  "typography": {
+    "families": {
+      "serif": { "name": "Fraunces", "stack": "Fraunces, Georgia, serif", "source": "google" },
+      "sans":  { "name": "Inter", "stack": "Inter, system-ui, sans-serif", "source": "google" },
+      "mono":  { "name": "IBM Plex Mono", "stack": "'IBM Plex Mono', ui-monospace, monospace", "source": "google" }
+    },
+    "roles": {
+      "display": "serif",
+      "heading": "sans",
+      "body": "sans",
+      "mono": "mono"
+    },
+    "scale": { "base": "16px", "ratio": 1.2 },
+    "tracking": { "eyebrow": "0.08em", "heading": "0" },
+    "leading": { "body": 1.6, "heading": 1.1 }
+  },
+  "fonts": [
+    { "family": "Fraunces", "weights": [400, 600], "source": "google" },
+    { "family": "Inter", "weights": [400, 500, 600], "source": "google" },
+    { "family": "IBM Plex Mono", "weights": [400], "source": "google" }
+  ],
+  "logos": {
+    "primary": "assets/logo.svg",
+    "symbol": "assets/symbol.svg",
+    "variants": {
+      "light": "assets/logo-light.svg",
+      "dark": "assets/logo-dark.svg"
+    },
+    "favicon": "assets/favicon.png"
+  },
+  "radius": { "scale": "soft", "field": "0.25rem", "box": "0.5rem", "selector": "0.25rem" },
+  "imagery": [
+    { "role": "hero", "file": "assets/imagery/hero.jpg" },
+    { "role": "product", "file": "assets/imagery/produto-01.jpg" },
+    { "role": "editorial", "file": "assets/imagery/editorial.jpg" }
+  ],
+  "voice": {
+    "tone": ["acolhedor", "artesanal", "preciso"],
+    "tagline": "Feito com calma, pra durar.",
+    "microcopy": {
+      "cta_primary": "Adicionar à sacola",
+      "newsletter": "Novidades, sem pressa.",
+      "empty_cart": "Sua sacola ainda está vazia."
+    }
+  },
+  "reference": [
+    { "kind": "screenshot", "of": "homepage", "file": "reference/home.png" },
+    { "kind": "screenshot", "of": "product", "file": "reference/produto.png" }
+  ],
+  "commerce": {
+    "minicart": {
+      "type": "drawer",
+      "side": "right",
+      "line_item": "thumb-left",
+      "actions": { "primary": "checkout", "secondary": "continuar-comprando" },
+      "shipping_bar": true,
+      "upsell": false
+    },
+    "plp": {
+      "grid": { "desktop": 3, "mobile": 2 },
+      "card": {
+        "image_ratio": "3:4",
+        "fit": "cover",
+        "shows": ["name", "price"],
+        "add_to_cart": "text-link"
+      },
+      "filters": "drawer",
+      "sort": "dropdown",
+      "pagination": "load-more"
+    },
+    "pdp": {
+      "gallery": "stacked",
+      "buy_box": { "variant_selector": "pills", "qty": true, "cta_style": "filled" },
+      "info": "accordion",
+      "cross_sell": true
+    }
+  },
+  "_uncertain": ["colors.roles.accent", "colors.gradients.dusk"]
+}

@@ -1,7 +1,0 @@
-{%- assign current_page = ctx.url.querystring.page | default: 1 | plus: 0 -%}
-{% if infinite_scroll and current_page == 1 %}
-  {% render 'pages/search/components/pagination/infinite' %}
-{% else %}
-  {% render 'pages/search/components/pagination/infinite', paged: true %}
-  {% render 'pages/search/components/pagination/paged' %}
-{% endif %}
