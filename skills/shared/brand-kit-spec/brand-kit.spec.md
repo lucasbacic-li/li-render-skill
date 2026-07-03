@@ -38,7 +38,7 @@ o resto eleva a fidelidade.
 │   ├── favicon.png        ← opcional
 │   ├── fonts/             ← .woff2/.ttf quando self-hosted (opcional)
 │   └── imagery/           ← amostras (hero/produto/editorial) — referência
-├── reference/             ← screenshots da fonte (URL/Figma) — referência humana
+├── reference/             ← baseline RENDERADO da fonte: <label>.rendered.html + .bands.json + .full.png
 └── comps/                 ← maquetes HTML fiéis do ALVO (gravadas pela Skill 2)
     ├── components/        ← 1 comp por COMPONENTE (header, footer, card, buy-box, minicart…) — alvo 1:1 isolado
     └── pages/             ← comps de COMPOSIÇÃO (home, PLP, PDP) — só ordenam componentes
@@ -76,7 +76,7 @@ Legenda: **(R)** obrigatório · **(D)** recomendado · **(O)** opcional.
 | `radius` | object | O | Linguagem de cantos (sharp/soft/round). |
 | `imagery` | array | O | Amostras de imagem (referência). |
 | `voice` | object | O | Tom + microcopy para conteúdo on-brand. |
-| `reference` | array | O | Screenshots da fonte (referência humana). |
+| `reference` | array | **R** | Baseline renderado da fonte (`rendered.html` + `bands.json` + `full.png`) — alvo de diff da Skill 2. Falha-fechado: sem ele, o loop da Skill 2 não roda. |
 | `commerce` | object\|null | — | **Sempre `null` na saída da Skill 1.** Preenchido pela Skill 2. |
 
 ### `source` (proveniência)
@@ -228,7 +228,9 @@ mapeiam direto para os tokens de raio do DaisyUI (`--radius-field/box/selector`)
   }
 },
 "reference": [
-  { "kind": "screenshot", "of": "homepage", "file": "reference/home.png" }
+  { "kind": "rendered-html", "of": "homepage", "file": "reference/home.rendered.html" },
+  { "kind": "bands",         "of": "homepage", "file": "reference/home.bands.json" },
+  { "kind": "screenshot",    "of": "homepage", "file": "reference/home.full.png" }
 ]
 ```
 
@@ -275,6 +277,65 @@ restringidos pelo contrato `../litheme-capabilities/`):
 - `pdp.gallery`: `stacked` | `carousel` | `grid`
 - `pdp.buy_box.variant_selector`: `swatch` | `pills` | `dropdown`
 - `pdp.info`: `accordion` | `tabs`
+
+### `theme_mode` (preenchido pela Skill 2)
+
+Sai `null` da Skill 1. É a **decisão global de modo de tema** — *um* modo para a
+loja inteira. Lojas-fonte frequentemente **misturam** light/dark de forma
+inconsistente (ex.: chrome dark + miolo da PDP light); isso é **débito de
+usabilidade**, não identidade a preservar. A Skill 2 padroniza para **um** modo
+(decisão `modernize` registrada), para que o reskin implemente um light/dark
+coerente com o contraste resolvido **nativamente pelo DaisyUI** (`base-100/200/300`
++ `base-content`), sem carve-back manual.
+
+```json
+"theme_mode": {
+  "mode": "light",                 // light | dark — UM modo, global
+  "rationale": "fonte misturava chrome dark + PDP light; padronizado p/ light (paleta clara da marca + leitura de catálogo)",
+  "inverted_sections": ["footer"]  // OPCIONAL: seções deliberadamente invertidas (acento contido), não mudança de modo
+}
+```
+
+- `mode`: `light` | `dark`. Decide como os papéis de cor mapeiam para o tema DaisyUI
+  (`surface`→`base-100`, `ink`→`base-content`, etc. — ver `../litheme-capabilities/`).
+- `inverted_sections`: lista de seções que são **acento invertido deliberado** (ex.:
+  rodapé escuro num tema light), materializadas via `surface_dark`/`ink_inverse`. NÃO
+  é licença para modo ambíguo por página — é um acento contido e consistente.
+- **Exceção "chrome≠conteúdo"** (híbrido, ex.: body escuro + tiles claros): cara e
+  arriscada (briga com o DaisyUI → exige carve-back de contraste). Só quando a marca
+  genuinamente exige; registrar como decisão consciente. O **default é modo único**.
+
+### `layout` (preenchido pela Skill 2)
+
+Sai `null` da Skill 1. É a **decisão global de largura** — outra escolha recorrente de
+implementação (o litheme trava o conteúdo em 1280px por um `@utility container`). A
+Skill 2 decide a régua **uma vez** e a Skill 3 a implementa redefinindo o `container`
+(ver `../../li-render-store-builder/references/litheme-structure.md` → "Largura/
+responsividade global").
+
+```json
+"layout": {
+  "width": "contained",                  // contained | fluid-up
+  "max_width": "1280px",                 // cap do conteúdo (contained) ou cap alto (fluid-up, ex. 1920px)
+  "gutter": "clamp(16px, 4vw, 64px)",    // padding lateral do container
+  "full_bleed": ["announcement", "hero", "section-bands", "footer"]  // seções que furam o cap (100vw)
+}
+```
+
+- `width`: `contained` (cap fixo, como os 1280px do litheme) | `fluid-up` (o conteúdo
+  **cresce com a viewport** até um cap alto/nenhum — loja "responsiva pra cima").
+- `max_width` / `gutter`: o cap do conteúdo e o respiro lateral do `container`.
+- `full_bleed`: lista de seções que **ignoram o cap e vão 100% de largura** mesmo num
+  layout `contained` (ex.: banner full, faixa de aviso, faixas de seção escura, rodapé).
+  Full-bleed ≠ fluid: o **fundo** sangra de ponta a ponta, mas o **conteúdo** da seção
+  alinha no mesmo gutter/cap do resto (padrão "fundo full-bleed + conteúdo no
+  `.container`"). O comp materializa essa decisão e a Skill 3 a implementa.
+  > ⚠️ **`full_bleed` é decisão a MATERIALIZAR + VERIFICAR, não só armazenar.** A escolha
+  > **banner contido × sangrando** é recorrente e fácil de "furar": declarada no kit e nunca
+  > implementada. A Skill 2 deve **olhar o `full.png` do fonte** (o banner sangra ou para no
+  > cap?) e materializar o comp igual; a Skill 3 deve **quebrar a seção para 100vw** (o litheme
+  > renderiza banner/hero dentro do `.container` por padrão) e **conferir por DOM** que a largura
+  > ≈ viewport. Banner preso no cap quando o fonte sangra = lacuna de paridade.
 
 ---
 

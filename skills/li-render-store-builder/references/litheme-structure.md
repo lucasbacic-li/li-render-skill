@@ -111,7 +111,8 @@ Estrutura:
   --color-info: #cfd2d6;  --color-success: #27a47d;
   --color-warning: #fcb700; --color-error: #ff6265;  /* + *-content */
   --radius-selector: .375rem; --radius-box: .75rem; --radius-field: 2rem;
-  --size-field: .25rem; --size-selector: .25rem; --border: 1px; --depth: 1; --noise: 1;
+  --size-field: .25rem; --size-selector: .25rem; --border: 1px; --depth: 1;
+  --noise: 0;  /* DaisyUI v5: 1 = textura de grão nas superfícies (botões etc.). OPT-IN por marca — deixe 0 por padrão; só ligue se o briefing pedir grão explicitamente. */
 }
 
 @layer base { html { @apply scroll-smooth; font-family: "DM Sans", sans-serif; } }
@@ -220,6 +221,66 @@ mega-menu + dropdowns por hover via CSS `.categories-container*`/`.mega-menu`),
   kit: fundo `surface` translúcido + hairline `line` + ícones `ink`). Tudo herda
   DaisyUI, então o minicart/drawers já vêm on-brand; polir labels (ex.: header do
   minicart no papel de subtítulo da marca, borda `line`).
+
+## Footer nativo (subsistema) — o que já vem pronto (verificado, `litheme-ref`)
+
+O rodapé do litheme é **rico** em **dados/capacidade** — `footer/{container,copyright,payments,payments-brands,social}.liquid`.
+> 🔴 **"Preservar o footer" = preservar os BLOCOS DE DADO/CAPACIDADE, NÃO a ESTRUTURA nativa.**
+> O footer **não** é um dos 3 preserve-native (minicart/busca-ao-vivo/filtros) — ele **forka por
+> default**, como header/PDP/card. O que você **não pode perder** são os **blocos nativos de
+> DADO** abaixo (institucional via `get_institutional_pages`, categorias via `get_category_tree`,
+> SAC HTMX, bandeiras de pagamento, selos SSL/Safe-Browsing + `footer_stamps`, dados legais
+> CNPJ/razão social, atribuição LI, newsletter). O que você **DEVE** mudar é a **ESTRUTURA/LAYOUT**
+> (nº e ordem de colunas, **coluna de marca** logo+blurb+social, arranjo das faixas Pague-com/Selos,
+> barra inferior) para **casar o comp**. Ou seja: **realoje os blocos de dado nativos DENTRO da
+> estrutura do comp** — não os apague (a falha antiga) **e não preserve as colunas nativas** (a
+> falha nova, mais comum). "Reskinar o footer" sem reestruturar = footer preso no nativo ≠ comp.
+`container.liquid` monta os blocos (todos condicionais) — **reuse os renders de dado, mas dentro da estrutura do comp**:
+- **Newsletter bar** (`render newsletter/bar`, se `layout_attributes.newsletter.boxnews_barra`).
+- **Social** (`render footer/social`).
+- **Coluna Institucional** — `for page in data.institutional_pages` (`get_institutional_pages`) → `/pagina/{url}`.
+- **Coluna Categorias** — `for category in data.categories` (`get_category_tree`).
+- **Coluna Contato/SAC** — HTMX `hx-get="/partial/components/sac"` (lazy, `intersect once`).
+- **Pagamentos** (`render footer/payments` + `payments-brands`).
+- **Certificados de segurança** — já traz **SSL** + **Google Safe Browsing** (imgs em
+  `ctx.static_domain/.../struct/`) + gancho **`{% appsection footer_stamps %}`**.
+
+`copyright.liquid` já renderiza, do `get_store`: **razão social** (`business_name`/`owner_name`),
+**CNPJ/CPF** (`document_number | format_cpfcnpj`), **endereço completo**, © ano, e a
+**atribuição Loja Integrada** (logo + link utm). Ou seja: **dados legais e atribuição LI são
+nativos** — não há "desenvolvido por plataforma antiga" a trocar. Mobile usa `collapse`
+(acordeão por coluna); desktop abre tudo (`md:collapse-open`).
+
+> **Duas falhas-espelho do footer (as duas são divergência de paridade — evite AS DUAS):**
+> 1. **Reescrever do zero e PERDER blocos** (falha antiga): footer virou colunas estáticas
+>    e sumiram payments/newsletter/selos/legal nativos. ❌
+> 2. **Reskinar in-place e ficar PRESO na estrutura nativa** (falha RECORRENTE, a mais comum):
+>    o agente recolore o footer nativo, mantém as **colunas nativas** (ex.: Social como coluna
+>    própria, **sem a coluna de marca logo+blurb** do comp; bandeiras monocromáticas em vez das
+>    placas coloridas) e **declara pronto** — divergindo do comp. ❌ O álibi típico (visto em
+>    caso real, neste repo): *"o footer nativo não tem bloco de marca/blurb, as regras proíbem
+>    inventar estrutura não-nativa"* — **isso é o bug, não uma justificativa.** A coluna de
+>    marca **está no comp** → é estrutura a CONSTRUIR (fork), não estrutura "não-nativa proibida".
+>
+> ✅ **O certo (forka a estrutura, preserva o dado):** reestruture `container.liquid`/colunas para
+> a grade do comp (coluna de marca + as colunas que o comp pede, na ordem do comp), e **realoje
+> dentro** os renders de dado nativos (`get_institutional_pages`, `get_category_tree`, SAC HTMX,
+> `footer/payments`+`payments-brands`, selos+`footer_stamps`, `copyright` legal+LI). Bandeiras/
+> selos como o comp pede (placas coloridas se o comp usa imagens — as imagens reais estão no kit).
+> `build-custom` de footer **não exige** que "o inventário peça estrutura que o nativo não dá" —
+> divergir do nativo é o **default**; só os 3 preserve-native ficam no nativo.
+
+## Apps de terceiros — os ganchos `{% appsection %}` (só 4)
+
+O litheme expõe **apenas 4 pontos de injeção** para apps de loja (verificado):
+`footer_stamps` (rodapé — selos/reputação tipo Reclame Aqui/Ebit),
+`shelf_after_product_title`, `after_product_title`, `after_product_description` (PDP).
+
+Tudo que o site-fonte tinha via **app externo fora desses slots** (WhatsApp flutuante,
+chat, feed de Instagram, pixel/analytics/GTM) **não é tema** — é configuração de loja
+(painel/script). No inventário de migração isso é `store-app` → `reintegrate-app`; a
+Skill 3 **não** implementa esses no tema (salvo `build-custom` deliberado). Ver
+`../../store-design-composer/references/content-surfaces.md` (matriz de apps de 3os).
 
 ## Templates: como o estilo cascateia
 

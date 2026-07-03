@@ -18,7 +18,7 @@ destilação de ruído e dá fidelidade muito maior.
 
 | Plataforma | Sinais no HTML / assets | Doc | Status |
 |---|---|---|---|
-| **Loja Integrada** (tema clássico) | `cdn.awsli.com.br`, `static/loja/estrutura/v1`, "Loja Integrada" | [loja-integrada.md](loja-integrada.md) | ✅ verificado (GCM Games) |
+| **Loja Integrada** (tema clássico) | `cdn.awsli.com.br`, `static/loja/estrutura/v1`, "Loja Integrada" | [loja-integrada.md](loja-integrada.md) | ✅ verificado |
 | **WooCommerce** / WordPress | `/wp-content/`, `wp-json`, classes `woocommerce` | [woocommerce.md](woocommerce.md) | ⚠️ a verificar |
 | **Nuvemshop** / Tiendanube | `nuvemshop`, `tiendanube`, `*.mitiendanube.com` | [nuvemshop.md](nuvemshop.md) | ⚠️ a verificar |
 | **Tray** | `tray`, `*.commercesuite.com.br`, `tray.com.br` | [tray.md](tray.md) | ⚠️ a verificar |

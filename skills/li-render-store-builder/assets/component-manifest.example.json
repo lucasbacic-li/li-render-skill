@@ -1,12 +1,35 @@
 {
   "$schema": "li-render/component-manifest@1",
-  "_doc": "Manifesto de COMPONENTES — fonte da verdade do que está travado (locked). O orquestrador (thread principal da Skill B) lê/escreve; cada sub-agente de componente devolve o veredito que vira uma entrada aqui. Componente 'locked' NÃO se reabre nem se re-lê. Ver references/implementation-plan.md §4. Genérico: a lista de components/gates depende da loja, não destes literais.",
+  "_doc": "Manifesto de COMPONENTES — fonte da verdade do que está travado (locked). O orquestrador (thread principal da Skill 3, que NÃO edita arquivo nenhum) lê/escreve; cada sub-agente de componente devolve 'edited' + self-diff, e a verificação INDEPENDENTE (§4f) executa o diff e promove a 'locked'. Regra de artefato: 'locked' exige evidence.diff_vs_comp preenchido E evidence.verified_by != implemented_by (quem implementou não atesta a própria obra). Componente 'locked' NÃO se reabre nem se re-lê. Ver references/implementation-plan.md §4. Genérico: a lista de components/gates depende da loja, não destes literais.",
   "theme": "<nome-do-tema>",
   "components": [
+    {
+      "component": "foundation",
+      "comp": null,
+      "status": "locked",
+      "implemented_by": "foundation-agent",
+      "files": ["assets/style/theme.css"],
+      "structure_changes": [
+        "tokens cor/raio mapeados papel->DaisyUI",
+        "--font-sans trocado no @theme + papéis em @layer base",
+        "estratégia de tema: modo único dark aplicado"
+      ],
+      "global_rules_added": [],
+      "evidence": {
+        "diff_vs_comp": "n/a (fundação não tem comp); cascata verificada: cor/fonte/raio em home/PLP/PDP",
+        "verified_by": "gate",
+        "diff_desktop": "cascata ok ~1440",
+        "diff_mobile": "cascata ok ~390",
+        "contrast": "limpo"
+      },
+      "deviations": [],
+      "blockers": []
+    },
     {
       "component": "header",
       "comp": "comps/components/header.html",
       "status": "locked",
+      "implemented_by": "comp-agent:header",
       "files": [
         "templates/shared/components/header/index.liquid",
         "templates/shared/components/header/components/navbar/navigation.liquid"
@@ -18,6 +41,8 @@
       ],
       "global_rules_added": [],
       "evidence": {
+        "diff_vs_comp": "header isolado bate com comps/components/header.html (3 faixas, busca central, utilidades rotuladas); 0 divergência injustificada",
+        "verified_by": "gate",
         "diff_desktop": "header isolado ~1440 bate com o comp (3 faixas)",
         "diff_mobile": "header isolado ~390 ok (busca colapsa, nav vira drawer)",
         "contrast": "limpo; flag aceito: links de nav no secondary (cor de marca intencional)"
@@ -30,11 +55,19 @@
     {
       "component": "product-card",
       "comp": "comps/components/product-card.html",
-      "status": "in-progress",
+      "status": "edited",
+      "implemented_by": "comp-agent:product-card",
       "files": ["templates/shared/components/product-card/index.liquid"],
-      "structure_changes": [],
+      "structure_changes": ["tile branco bg-base-100 com badge no canto, preço + parcela"],
       "global_rules_added": ["bg-base-100 na raiz do <product-card> (tile branco) — theme.css"],
-      "evidence": { "diff_desktop": null, "diff_mobile": null, "contrast": null },
+      "evidence": {
+        "diff_vs_comp": null,
+        "verified_by": null,
+        "diff_desktop": null,
+        "diff_mobile": null,
+        "contrast": null
+      },
+      "_note": "implementador devolveu 'edited' + self_diff; aguarda a verificação independente (§4f) escrever diff_vs_comp/verified_by p/ virar 'locked'",
       "deviations": [],
       "blockers": []
     },
@@ -42,10 +75,11 @@
       "component": "footer",
       "comp": "comps/components/footer.html",
       "status": "todo",
+      "implemented_by": null,
       "files": [],
       "structure_changes": [],
       "global_rules_added": [],
-      "evidence": { "diff_desktop": null, "diff_mobile": null, "contrast": null },
+      "evidence": { "diff_vs_comp": null, "verified_by": null, "diff_desktop": null, "diff_mobile": null, "contrast": null },
       "deviations": [],
       "blockers": []
     },
@@ -53,12 +87,13 @@
       "component": "buy-box",
       "comp": "comps/components/buy-box.html",
       "status": "blocked",
+      "implemented_by": null,
       "files": [],
       "structure_changes": [],
       "global_rules_added": [],
-      "evidence": { "diff_desktop": null, "diff_mobile": null, "contrast": null },
+      "evidence": { "diff_vs_comp": null, "verified_by": null, "diff_desktop": null, "diff_mobile": null, "contrast": null },
       "deviations": [],
-      "blockers": ["depende de decisão do usuário: painel branco sticky vs. solto no fundo navy"]
+      "blockers": ["depende de decisão do usuário: painel branco sticky vs. solto no fundo escuro do shell"]
     }
   ],
   "gates": {

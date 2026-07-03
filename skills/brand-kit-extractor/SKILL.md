@@ -52,6 +52,26 @@ Esta skill é o *produtor* desse contrato.
    a **Skill 2** (`store-design-composer`) as deriva, elicita com o cliente e
    materializa em comps. Não tente preencher.
 
+6. **O baseline da migração é o RENDER, não o HTML cru.** O `curl` entrega o HTML
+   **pré-JS** — não diz o que de fato pinta no corpo (faixas injetadas por JS, modo
+   claro/escuro por região, ordem real). A estrutura/conteúdo da loja vêm do
+   **render ao vivo**, capturado de forma **reproduzível e arquivável** por
+   `scripts/capture-source.mjs` (Chrome headless → `rendered.html` pós-JS +
+   `bands.json` (torre de faixas com modo/texto/imgs) + `full.png`). Esse trio é a
+   **baseline ground-truth** que a Skill 2 diffa — sem ele, o loop de comp da Skill 2
+   **não computa "0 divergências"** (falha-fechado). O `curl` continua sendo a fonte de
+   **cor e download de assets**, não de estrutura.
+
+7. **Delegue a captura pesada a um sub-agente; a thread principal decide e confirma.**
+   A Fase 1 (rodar o `capture-source.mjs`, raspar CSS de cor, baixar TODOS os assets) é o
+   maior consumo de contexto da skill — e é leitura/extração, não decisão. Despache um
+   **sub-agente de captura** que roda a captura + o scrape e devolve um **resumo compacto**
+   (paleta crua candidata, fontes, lista de assets baixados + caminhos, **resumo do
+   `bands.json`**) em vez de encher a thread principal com CSS cru. A thread principal fica para a **destilação
+   cor→papel**, os `_uncertain` e a **confirmação com o parceiro** (Fase 4) — que precisa de
+   uma cabeça coerente e do diálogo, não dá pra delegar. Regra geral do kit: leitura/varredura
+   pesada vai pra sub-agente que retorna artefato magro; decisão e conversa ficam na principal.
+
 ## Inputs necessários
 
 - **URL** da marca/loja (input primário da v1). Pergunte se não foi dada.
@@ -62,15 +82,37 @@ Esta skill é o *produtor* desse contrato.
 ## O fluxo (5 fases)
 
 ### Fase 1 — Capturar
-Buscar o HTML/CSS da URL e capturar evidência visual. Ver
+Capturar o **baseline renderado** (obrigatório) + o HTML/CSS/assets. Ver
 `references/url-ingestion.md`.
-- **Detecte a plataforma primeiro** (Loja Integrada, WooCommerce, Nuvemshop, Tray,
+- **PRIMEIRO, capture o baseline renderado** de cada superfície (home + 1 PLP + 1 PDP) com
+  `node scripts/capture-source.mjs --url <URL> --out <kit>/reference --label home` (e
+  `--mobile` para o mobile). Gera `reference/<label>.rendered.html` + `.bands.json` + `.full.png`.
+  **É o passo que não pode faltar** — é a baseline que a Skill 2 inventaria e diffa.
+- **Detecte a plataforma** (Loja Integrada, WooCommerce, Nuvemshop, Tray,
   Shopify, VTEX…) e siga o doc de dicas em `references/platforms/` — é um atalho de
   alta fidelidade (cada plataforma guarda a marca num lugar diferente).
 - `curl` da home (UA de browser) + dos **CSS de marca** — é a fonte real de cor.
   WebFetch da home serve para a **semântica** (seções/tom/categorias), não para cor.
-- Coletar: CSS de marca, `<link>` de fontes (Google), favicon, logo (PNG/SVG).
-- Screenshot das páginas para `reference/` (referência humana, se houver navegador).
+- Coletar: CSS de marca, `<link>` de fontes (Google), favicon, logo (**procure o SVG
+  vetorial**, não só o PNG — ver platform doc).
+- **CAPTURA COMPLETA NUMA PASSADA (você é a única skill que precisa raspar).** Baixe
+  **TODOS os assets de marca reais** que a Skill 2 vai usar nos comps — não "1-3
+  amostras": **todos os banners/tiles/editorial** que o lojista subiu (extraia de
+  `<img src>` **e** dos `url(...)` de `style`/CSS — muitos são `background-image`) + um
+  punhado de **imagens de produto** (com Referer, ver platform doc). Subextrair aqui faz a
+  Skill 2 reabrir o site e re-raspar — a **maior redundância de token** do fluxo.
+- **`reference/` é a baseline renderada, não uma descrição:** o `bands.json` já traz a home
+  **faixa a faixa NA ORDEM do corpo** (cada faixa com posição, modo claro/escuro, texto e imgs) e
+  o `full.png` mostra o render inteiro. A Skill 2 inventaria **a partir desses artefatos** — não
+  de uma descrição textual que alguém escreveu lendo o HTML (isso é circular e perde faixas
+  injetadas por JS). Um `reference/README.md` opcional pode **resumir** o `bands.json`, mas **nunca
+  o substitui** como baseline de diff. ⚠️ Distinga **conteúdo do body** de **decoração de
+  menu/dropdown/footer**: uma faixa só conta se aparece no `bands.json` (corpo renderizado) — asset
+  que só vive em menu/dropdown/footer **NÃO é faixa da home**; anote a origem.
+- **Sem navegador ⇒ captura INCOMPLETA, não "cai pro textual".** Se o `capture-source.mjs` não
+  puder rodar (sem Chrome/Chromium), registre a lacuna **explicitamente** e avise que a Skill 2
+  **não pode rodar o loop de comp** (sem baseline renderado não há contra o quê diffar). Nunca
+  produza uma descrição textual de HTML cru e a trate como baseline.
 
 ### Fase 2 — Destilar
 Reduzir o ruído a papéis. Ver `references/color-distillation.md`.
@@ -107,11 +149,18 @@ Só está pronto quando:
       os 9 papéis de cor obrigatórios + papéis de tipo; `commerce: null`;
       `_uncertain` lista honestamente o que foi inferido.
 - [ ] `tokens.css` e `GUIDELINES.md` gerados e **consistentes** com o JSON.
-- [ ] `assets/`: logo (+ favicon) baixados; `imagery/` com 1–3 amostras se houver;
-      `fonts/` **só** se a fonte for self-host (Google Fonts não gera arquivo).
-- [ ] `reference/`: **ao menos 1 screenshot da origem** (home) como referência
-      humana. Sem navegador disponível, registre a lacuna explicitamente (não
-      deixe a pasta silenciosamente vazia).
+- [ ] `assets/`: logo (**SVG vetorial se existir** no site, não só o PNG) + favicon;
+      `imagery/` com **TODOS os banners/tiles/editorial reais** do fonte (não 1-3
+      amostras) + um punhado de **imagens de produto**; `fonts/` **só** se self-host.
+      Critério: a Skill 2 consegue montar os comps **sem reabrir o site** — se ela
+      precisar re-raspar um asset, a captura aqui falhou.
+- [ ] `reference/`: o **baseline renderado** de cada superfície (home + 1 PLP + 1 PDP),
+      gerado por `scripts/capture-source.mjs`: `<label>.rendered.html` (DOM pós-JS) +
+      `<label>.bands.json` (torre de faixas NA ORDEM, com modo claro/escuro, texto e imgs) +
+      `<label>.full.png` (render inteiro). É a baseline que a Skill 2 inventaria e diffa
+      (distinguindo conteúdo do body de decoração de menu/dropdown/footer). **Sem navegador,
+      registre a lacuna explicitamente** e sinalize que a Skill 2 não poderá rodar o loop de
+      comp — nunca substitua o baseline por uma descrição de HTML cru.
 - [ ] **Todo caminho de asset citado no JSON existe em disco** (logo/favicon/
       imagery). Sem pastas órfãs vazias no kit.
 - [ ] Rascunho **apresentado e confirmado** com o parceiro (Fase 4).
@@ -127,7 +176,9 @@ Só está pronto quando:
 - `../shared/brand-kit-spec/brand-kit.spec.md` — **o contrato de saída**. A fonte
   da verdade do formato. Leia primeiro.
 - `../shared/brand-kit-spec/examples/brand.kit.example.json` — exemplo completo.
-- `references/url-ingestion.md` — como capturar HTML/CSS/fontes/logo de uma URL.
+- `scripts/capture-source.mjs` — **a captura do baseline renderado** (Chrome headless →
+  `rendered.html` + `bands.json` + `full.png` por superfície). O passo obrigatório da Fase 1.
+- `references/url-ingestion.md` — como capturar o baseline renderado + HTML/CSS/fontes/logo de uma URL.
 - `references/platforms/` — **dicas de extração por plataforma** (LI, WooCommerce,
   Nuvemshop, Tray, Shopify, VTEX): onde mora a marca, padrões de logo/favicon,
   gotchas. Detecte a plataforma e abra o doc certo antes de destilar.

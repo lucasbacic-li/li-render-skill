@@ -116,6 +116,66 @@ explícito, título-como-corpo). Homogenize o que aparecer. Ver `global-styling.
 - [ ] Nada "median": o resultado tem a direção visual específica da marca, não um
       reskin genérico de tokens.
 
+## Paridade de migração (contra `migration-inventory.json` **e o site-fonte ao vivo**)
+
+Re-verifique o **contrato de paridade** no preview ao vivo, superfície por superfície:
+
+- [ ] **Diff contra o SITE-FONTE (A), faixa-a-faixa** — não só contra os comps. Use o
+      **baseline renderado** do kit (`reference/*.bands.json` = faixas/ordem/conteúdo/modo +
+      `*.full.png`), que a Skill 1 capturou do site real; se estiver velho, regenere com
+      `../../brand-kit-extractor/scripts/capture-source.mjs`. Confira preview×baseline: mesmas
+      faixas/ordem, mesma nav (categorias), mesmos banners/vitrines, **mesma copy de faixa**
+      (anúncio/USP/CTAs). 🔴 Bater a comp (B) não prova paridade — a comp pode ter divergido do
+      fonte. Faixa do tema que **não está no `bands.json`** = seção inventada; faixa do
+      `bands.json` **ausente** no preview = lacuna.
+- [ ] Todo item `must`/`should` `native`/`build-custom` está **presente** (ou é
+      `drop`/`reintegrate-app` consciente). Lacunas `must` → **reporte em destaque**
+      (modo só-alerta; não hard-blocka — `promote` é decisão do usuário).
+- [ ] `store-app`/`reintegrate-app` **não** virou tema — lista como pendência de
+      configuração de loja (painel), não implementação.
+
+## Paridade de CONTEÚDO + aviso de seed (não confunda "renderiza" com "migrou")
+
+- [ ] **Conteúdo da conta-alvo conferido contra o fonte:** catálogo/vitrines, **árvore de
+      categorias da nav**, banners do hero, **copy de faixas**, dados legais (CNPJ/razão
+      social). Marque `content_loaded` (true/false/unknown) por item `axis: content` no
+      inventário.
+- [ ] 🔴 **Aviso de SEED:** se a conta tem seed genérico (produtos/categorias que **não são do
+      lojista**), reporte no topo: *"conteúdo do lojista NÃO carregado — paridade de conteúdo
+      NÃO verificável neste preview; só estilo/estrutura verificados"*. Liste a pendência de
+      import (catálogo/categorias/banners = config de loja). **Nunca** declare pronto com
+      produtos/categorias genéricos do seed no lugar do catálogo real do lojista.
+
+## Craft / refino (qualidade intrínseca — espelha `store-design-composer/references/design-quality.md`)
+
+Além de "bate com o comp": a loja tem que ser **bem feita**. Estes são defeitos de
+*craft* que o reskin de tokens não pega sozinho — verifique no preview ao vivo:
+
+- [ ] **Estados completos** de cada interativo, exercidos AO VIVO (não só default):
+      hover · **focus visível** · active · disabled · **loading** (skeleton, não
+      spinner) · **empty** (sacola/busca vazias ensinam) · error. (O sweep estático
+      mente — abra drawers/dropdowns/estados vazios via eval; ver matriz responsiva.)
+- [ ] **Espaçamento numa escala + ritmo** (sem `13px` avulso; seções respiram, grupos
+      apertam) e **alinhamento à régua** (`layout`: container único + full-bleed certos).
+- [ ] **Tipografia**: medida de linha 65–75ch no corpo; hierarquia com contraste real
+      (não título-como-corpo); sem texto estourando container em nenhum breakpoint.
+- [ ] **Contraste** (corpo ≥4.5:1, grande ≥3:1, placeholder 4.5:1; sem gray-on-color) —
+      via o sweep programático de contraste (CDP) já no fluxo.
+- [ ] **Toque & layout**: alvos ≥44px; zero overflow horizontal; sem CLS (imagens com
+      proporção reservada).
+- [ ] **Cards de grade com ALTURA UNIFORME**: meça `getBoundingClientRect().height` de
+      todos os cards de um shelf — devem ser **iguais**. Se variam, a media não está numa
+      caixa de aspect-ratio fixo (`image_ratio`) ou o corpo não reservou as linhas do nome
+      (`line-clamp`). Ver `global-styling.md` → "Product-card: altura uniforme".
+- [ ] **Faixas full-bleed com a largura certa**: para cada seção em `layout.full_bleed`
+      (hero/banner, tarjas), confirme por DOM que `getBoundingClientRect().width ≈
+      window.innerWidth` — banner preso no cap do container quando o fonte sangra é lacuna
+      de paridade (ver §4f passo 0 / `implementation-plan.md` Passo 1).
+- [ ] **Motion contido**: ease-out (sem bounce); `prefers-reduced-motion` com
+      alternativa; nenhum conteúdo escondido atrás de transição que não dispara headless.
+- [ ] **Dropdowns/menus não clipados** (mega-menu, sort, autocomplete) — `overflow`
+      não corta painel posicionado.
+
 ## Antes de entregar
 
 - [ ] Screenshot/preview capturado como evidência para o usuário.

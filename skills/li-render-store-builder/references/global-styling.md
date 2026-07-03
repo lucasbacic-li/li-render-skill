@@ -12,140 +12,32 @@
 > saem do brand-kit e do comp do caso atual.
 > Mapa papel→token DaisyUI: `../../shared/litheme-capabilities/litheme-capabilities.spec.md`.
 
-## ⚠️ Reskin DARK sobre o litheme (light-default): o whack-a-mole de contraste
+## Reskin por MODO (light/dark) sobre o litheme — e a exceção híbrida
 
-> **Lição do 1º teste real de marca escura (caso real).** Marcas com **chrome
-> escuro** (header/footer/hero navy) — ainda mais as **híbridas** (shell escuro +
-> *tiles* claros, ex.: cards brancos sobre navy) — são o caso **mais caro** de
-> reskin, porque o litheme é **light-default**: cada componente embute
-> `bg-base-100`/`bg-white`/`bg-neutral` e `text-base-content` (escuro). Resultado:
+> **Default = MODO ÚNICO.** O kit traz `theme_mode.mode` (`light`|`dark`), já
+> padronizado pela Skill 2 (lojas-fonte misturam modos; isso é débito eliminado, não
+> paridade). Implemente **um** tema DaisyUI coerente e deixe o **contraste por conta
+> do sistema** (`base-100/200/300` + `base-content`) — sem carve-back manual:
+> - **`light`**: caminho padrão do litheme. Nada a inverter.
+> - **`dark`**: `color-scheme: "dark"`, `base-100/200/300` escuros, `base-content`
+>   claro. O sistema inteiro inverte de uma vez (cards, drawers, texto, painéis
+>   aninhados) — **é o caminho barato e robusto** quando a marca é escura.
+> - **Seções invertidas** (`theme_mode.inverted_sections`, ex.: rodapé escuro num
+>   tema light): acento **contido** via `surface_dark`/`ink_inverse`, não muda o modo.
 
-**Por que um bg/cor no elemento NÃO basta:**
-- `footer { background: navy }` **não aparece**: o `footer/container.liquid` tem um
-  wrapper interno com `bg-base-100`/`bg-white` que **cobre** o navy.
-- `product-card { background: #fff }` pode não pegar se o bg visível está num **nó
-  interno** do componente; e sem ele, o texto do card (`text-base-content`, escuro)
-  fica **escuro sobre o navy** → ilegível.
-- O ícone do carrinho some porque vive num `span.indicator.text-base-content` — o
-  utility **vence** o `color` herdado do header.
-- Forçar `header { color: white }` quebra os **painéis claros aninhados**
-  (mega-menu, dropdown, modal, drawer, minicart, busca): viram **branco no branco**.
+> ⚠️ **A EXCEÇÃO: híbrido chrome≠conteúdo** (shell escuro + *tiles* claros, ex.: cards
+> brancos sobre um fundo escuro). É o caso **mais caro** e **NÃO é o default** — só quando o kit
+> explicitamente pede (decisão consciente da Skill 2). Briga com o litheme e exige um
+> **carve-back de contraste** sistemático. Para não poluir o caminho comum, a receita
+> completa (por que bg não basta · PASS sistemático · tokens shell-escuro+tiles · 2 edge-cases)
+> está **quarentenada** em **`dark-hybrid-exception.md`** — leia **só** se o kit pediu o
+> híbrido. Se o kit diz `dark` puro, vire os tokens e **pare**; não caia no híbrido por
+> reflexo.
 
-**Duas estratégias (escolha conscientemente):**
-1. **Esquema DARK por TOKEN (preferido p/ marca verdadeiramente escura).** Em vez
-   de overrides por componente, vire o tema DaisyUI: `color-scheme: "dark"`,
-   `--color-base-100/200/300` = tons escuros, `--color-base-content` = claro. O
-   sistema inteiro inverte (cards, drawers, texto) **de uma vez**, sem caçar
-   componente. ⚠️ Mas aí os "cards" usam `base-100` (escuro) — some o look de
-   **tile branco**. Se a marca quer tiles claros sobre shell escuro (híbrido),
-   isso NÃO resolve sozinho.
-2. **Regiões escuras seletivas (chrome dark + conteúdo claro).** Mantém os tokens
-   claros e escurece só header/footer/(hero). É o **mais barato** e já lê como a
-   marca (header navy + logo + accents). Foi o que ficou estável no caso real. O
-   **conteúdo claro** evita todo o whack-a-mole.
+## Accent de conversão que FALHA WCAG — decida no FOUNDATION, não por componente
 
-**Se for híbrido (shell escuro + tiles claros) — esse caso — é um PASS sistemático,
-não um one-liner.** Antes de declarar pronto, varra TODA superfície que vira:
-- [ ] header/nav: texto+ícones claros (incl. `.text-base-content`, ex.: carrinho).
-- [ ] painéis claros aninhados (mega/dropdown/modal/**minicart drawer**/busca):
-      re-afirmar texto **escuro** (mais específico, vence o claro do chrome).
-- [ ] footer: o bg navy tem que ir no **wrapper interno** que pinta branco, não só
-      no `<footer>`; e o texto vira claro.
-      ⚠️ **NÃO dropar os componentes ricos do footer do litheme p/ casar com um comp
-      simplificado.** O litheme traz `footer/{payments,payments-brands,social,copyright}`
-      + newsletter; o site real costuma ter **"Pague com" (ícones de pagamento)**, **"Selos"
-      (selos de confiança)** e **newsletter** — reskine-os (claros sobre navy), não os
-      apague. Lição (3º caso): o agente reescreveu o footer como 4 colunas estáticas e
-      **perdeu** payment-icons/newsletter/selos que existiam. **Atribuição mandatória da LI**
-      (`copyright.liquid`): **integre-a ao footer escuro** (mesma faixa, texto/logo claros) —
-      NÃO a deixe como **barra branca** separada destoando do layout. Unifique o rodapé num
-      componente coeso seguindo o **site original**, não só o comp.
-- [ ] cards (tiles): bg claro **no nó certo** do `product-card` + texto escuro
-      garantido (resetar `:is(h1..h6)` e dados que herdaram claro).
-- [ ] qualquer seção de conteúdo na home escura: títulos claros, mas tiles/box
-      internos mantêm seu próprio contraste.
-
-Regra: **mudança de "temperatura" de fundo é mudança GLOBAL** → sweep amplo
-(todas as superfícies × estados), não a página que você olhou. Quando em dúvida
-entre dark-shell híbrido e simplicidade, **dark-chrome + conteúdo claro** entrega
-80% da marca com 20% do risco.
-
-### ✅ Receita CONCRETA do híbrido (body navy + tiles brancos) — verificada (caso real)
-
-> "navy + tiles brancos" aqui é **o exemplo concreto do caso real** que validou a
-> receita — não é obrigatório. Leia "navy" como "a cor escura do shell desta marca"
-> e aplique a mesma estrutura à paleta do caso atual.
-
-Quando o cliente quer **fiel** (body navy em TODAS as páginas, conteúdo em painéis/cards
-brancos), esta combinação convergiu com pouco whack-a-mole:
-
-1. **Tokens** (`@plugin "daisyui/theme"`): `--color-neutral` = navy (é o `body` bg) ·
-   `--color-neutral-content` = branco · `--color-base-100` = branco (tiles/painéis) ·
-   `--color-base-content` = ink escuro (texto nos tiles) · `primary` = cor de conversão ·
-   `secondary` = cor de marca/nav. `color-scheme: "light"` (os tiles são claros).
-2. **Contraste por SISTEMA, não por região (regra única — evita o whack-a-mole).**
-   Marcar região por região (`.bk-on-dark` em cada container) é frágil: sempre escapa
-   uma e o texto sai escuro-sobre-navy. Em vez disso, defina **default claro no `body`
-   + carve-back escuro nos tiles** — UMA regra cobre TODA superfície:
-   ```css
-   /* DEFAULT (sobre o navy) = claro — pega header, footer, breadcrumb, shelf, PLP, PDP, menu… */
-   body :is(h1,h2,h3,h4,h5,h6),
-   body .text-base-content, body .collapse-title, body summary,
-   body label:not(.btn), body a:not(.btn) { color: var(--color-neutral-content); }
-   /* CARVE-BACK: dentro de qualquer TILE claro, texto volta ao ink escuro */
-   :is(.bg-base-100,.bg-base-200,.bg-base-300,.bg-white),
-   :is(.bg-base-100,.bg-base-200,.bg-base-300,.bg-white) :is(h1,h2,h3,h4,h5,h6,p,span,div,li,small,strong,td,th),
-   :is(.bg-base-100,.bg-base-200,.bg-base-300,.bg-white) :is(.text-base-content,.collapse-title,summary,label) { color: var(--color-base-content); }
-   :is(.bg-base-100,.bg-base-200,.bg-white) a:not(.btn) { color: var(--color-secondary); }
-   ```
-   O tile precisa só carregar `bg-base-100` (ex.: raiz do `<product-card>`, painel do
-   buy-box, drawer do minicart). Sem marcar região nenhuma à mão.
-   ⚠️ **`@utility btn-secondary` do litheme usa `text-neutral-content`** (assume neutral
-   ESCURO). Num reskin onde `neutral-content` virou CLARO, o botão soft (`bg-base-200`)
-   fica **branco-no-cinza-claro (invisível, ~1.1:1)**. Troque para `text-base-content`.
-3. **Preço fica no accent** — carve-out que VENCE o `.bk-on-dark` (specificity):
-   `.bk-on-dark strong[data-testid="li-product-price-selling"] { color: var(--color-primary); }`
-   (senão o flip de `.text-base-content` pinta o preço de branco).
-4. **Texto direto no body navy** (não num tile): títulos de shelf (`shelf/index` h2),
-   título de categoria/busca (`search/index` h1), breadcrumb — usam `text-base-content`
-   no litheme → troque por **`text-neutral-content`** (sempre ficam sobre o navy).
-5. **Ícones do header em currentColor** (tirar `fill="#101828"`) e pintar pelo papel:
-   `.bk-on-dark [data-testid^="li-header"] svg { color: var(--color-secondary); }`.
-
-> **product-card NÃO é tile branco por default.** O `<product-card>` do litheme só tem
-> bg atrás da imagem; nome/preço caem no `body` (navy → ilegível). Se o comp pede tile
-> branco cheio, adicione **`bg-base-100 text-base-content rounded-box overflow-hidden`**
-> à classe RAIZ do `<product-card>` — um golpe, vale em shelf e PLP.
-
-#### Dois edge-cases do carve-back (o sweep por sistema tem 2 furos previsíveis)
-
-O par "default claro no body + carve-back escuro nos tiles" cobre 90% — mas duas
-situações **invertem** dentro de um tile e o carve-back genérico erra. Adicione as
-duas regras à fundação **junto** com o carve-back (não espere o bug aparecer
-componente a componente):
-
-1. **ILHA ESCURA dentro de tile claro** (header de drawer/minicart navy DENTRO do
-   painel branco; faixa escura dentro de um card). O carve-back (`:is(.bg-base-100…)
-   :is(h1..h6,span,strong,…)`) pinta o título da ilha de **ink → invisível sobre o
-   navy**. Re-clareie a ilha com specificity ≥ a do carve-back (0,2,0) e ordem tardia:
-   ```css
-   .bk-drawer-head, .bk-drawer-head :is(span,strong,b,div,h1,h2,h3,h4,h5,h6,svg){ color: var(--color-neutral-content); }
-   ```
-   (Visto: o título "sacola" do minicart saiu escuro porque o header navy vive dentro
-   do drawer `bg-base-100`. Só a verificação AO VIVO pega — análise estática "título
-   branco sobre navy" engana, porque ignora o carve-back do ancestral.)
-2. **BOTÃO PREENCHIDO dentro de tile claro** — o `.btn-primary` (CTA) num painel
-   `bg-base-100` tem `strong/span` internos que o carve-back pinta de **ink sobre o
-   accent → ilegível**. Exima o conteúdo do botão preenchido (vale p/ buy-box, minicart,
-   qualquer CTA em tile):
-   ```css
-   :is(.bg-base-100,.bg-base-200,.bg-base-300,.bg-white) .btn-primary,
-   :is(.bg-base-100,.bg-base-200,.bg-base-300,.bg-white) .btn-primary :is(span,strong,b,small,svg,p){ color: var(--color-primary-content); }
-   ```
-   (O `body …:not(.btn)` do default já exime links/labels; o carve-back dos TILES não —
-   por isso precisa desta regra também.)
-
-#### Accent de conversão que FALHA WCAG — decida no FOUNDATION, não por componente
+> Vale para **qualquer modo** (light ou dark), não só o híbrido — um accent de
+> conversão de luminância média falha AA do mesmo jeito sobre branco ou sobre escuro.
 
 Muitas marcas têm um accent de conversão (verde/laranja/amarelo de luminância média)
 que falha AA dos **dois** lados: texto-no-accent (CTA branco sobre o accent) **e**
@@ -177,13 +69,42 @@ caso, escurecido a ~3.65:1 a pedido — decisão do usuário, não automática.)
   ex.: `.bk-display`, `.bk-heading`, `.bk-body`, `.bk-mono`, `.bk-eyebrow`,
   `.bk-cta-text`. Cada um mapeia para um papel de `typography.roles` do kit.
 
-## Global ou fork? Tabela de decisão (regra: forks são quase sempre erro)
+## DOIS eixos independentes: ESTILO (global) × ESTRUTURA (fork por default)
 
-Numa base DaisyUI/Tailwind, **toda decisão de estilo pertence ao sistema global**.
-Um estilo por bloco é um *fork* — e fork é code smell, não a norma. Antes de
-escrever qualquer estilo, classifique:
+> **A distinção que faltava — e que travou um caso real.** "Global-first" e "não forkar"
+> valem para **ESTILO**, não para **ESTRUTURA**. Misturar os dois fez o reskin ficar **preso
+> no componente nativo** (footer com colunas nativas; PDP com descrição full-width em vez da
+> zona ancorada do comp) e só **recolorir**. Separe sempre:
 
-| O que você quer mudar | Onde isso vive (global) | Fork = erro se… |
+- **ESTILO (cor, tipo, raio, CTA, ícone) → SEMPRE global; fork de estilo É erro.** A tabela
+  abaixo é só de estilo. Consistência vem de editar o sistema, nunca de recolorir por bloco.
+- **ESTRUTURA (seções, colunas, zonas, ordem, layout do componente) → FORK POR DEFAULT.**
+  Reestruturar o template nativo para casar o comp é **o esperado** e é o valor do LI Render.
+  Forkar a *estrutura* de header/footer/PDP/buy-box/product-card/seções de home/PLP **não é
+  code smell** — é o caminho normal. Mesmo forkando a estrutura, o **estilo continua vindo do
+  sistema** (tokens, `.btn`, papéis): forkar forma ≠ inventar cor.
+- 🔒 **Só 3 componentes preservam a ESTRUTURA nativa por default** (comportamento de conversão
+  que recriar quebra): **mini-cart** (desconto progressivo/frete-grátis/cupom/CEP), **prévia
+  de busca ao vivo / autocomplete** (prateleira + sugestões de termo), **filtros de busca**
+  (preserve os filtros; o usuário pode *adicionar* à lateral, mas filtro só muda sob pedido
+  explícito). Para esses 3: reskine, não reestruture sem pedido. Para o resto: reestruture à
+  vontade.
+- 🟡 **TERCEIRO eixo (a confusão que vaza no footer/PDP): preservar DADO/BLOCO ≠ preservar ESTRUTURA.**
+  Alguns componentes carregam **blocos de DADO/capacidade nativos** que você **não pode perder**
+  (footer: institucional/categorias/SAC/pagamentos/selos/legal-CNPJ/atribuição-LI/newsletter; PDP:
+  preço/parcelas/frete-CEP/reviews/compre-junto). "Preservar" esses blocos significa **manter o
+  render de dado** (a função/HTMX/partial) — **não** manter a **estrutura/layout nativa** em volta.
+  A regra que confunde os agentes: eles leem "não perca o footer nativo" e **preservam as colunas
+  nativas** (in-place reskin), quando o correto é **forkar a estrutura para o comp e REALOJAR os
+  blocos de dado dentro dela**. Footer e PDP **forkam por default** (não são preserve-native); só os
+  **3 acima** preservam estrutura. Teste: "este bloco carrega COMPORTAMENTO de conversão que recriar
+  quebra (minicart/busca/filtro)?" → preserve estrutura. "Carrega só DADO (links/flags/legal/preço)?"
+  → preserve o **render do dado**, forke a **estrutura** para o comp. Confundir os dois = footer preso
+  no nativo ≠ comp (falha recorrente).
+
+### Tabela de ESTILO (forks de estilo = erro)
+
+| O que você quer mudar (ESTILO) | Onde isso vive (global) | Fork = erro se… |
 |---|---|---|
 | Cor (texto, fundo, borda) | token DaisyUI (`--color-*`) / `var(--bk-*)` | usar `text-black/white`, `bg-white`, hex no template |
 | Forma (raio) | token `--radius-field/box/selector` | usar `rounded-xl/2xl/box…` no template |
@@ -195,11 +116,11 @@ escrever qualquer estilo, classifique:
 | Ícone (cor) | `fill="currentColor"` (herda o token) | `fill="#hex"` fixo (fica off-brand pós-reskin) |
 | Espaçamento/largura | utilities Tailwind + `.container` global | reimplementar gutter/max-width por seção |
 
-**Fork só é aceitável** quando o *layout* é genuinamente único (ex.: a grade de
-uma seção editorial específica) — e **mesmo aí**, cor/tipo/forma/CTA continuam
-vindo do sistema (tokens, `.bk-display`, `.btn`), nunca valores novos. Se você se
-pegar escrevendo um hex, um `font-family`, ou um botão do zero num template,
-pare: quase certamente é pra ser global.
+> **Teste do "pare" (corrigido):** se você está escrevendo um **hex/`font-family`/botão do
+> zero** num template → pare, é pra ser global (estilo). Mas se você está **preservando a
+> estrutura nativa de um componente que NÃO é um dos 3** "porque reskin é mais seguro" → pare
+> também: você deixou de implementar o comp. Reestruture para casar o comp; só o *estilo* dessa
+> estrutura nova vem do sistema.
 
 ### O terceiro caso: classe estrutural COMPARTILHADA (escope com modificador)
 
@@ -333,6 +254,29 @@ Use o componente de form do comp como referência: input mono, borda hairline
 colado. Vale para newsletter, busca, cálculo de CEP, contato — todos herdam de
 `.input`/`.btn`.
 
+## Product-card: ALTURA UNIFORME via media de proporção fixa (global, qualquer loja)
+
+O litheme deixa a `<img>` do card ditar a própria altura → num catálogo real (capa
+retrato × gift-card paisagem × packshot quadrado) os cards de um shelf ficam **com
+alturas diferentes**, e o grid lê como bagunça. Conserte no **componente product-card
+(global)**, não card a card:
+- **Media = caixa de aspect-ratio FIXO** vinda de `commerce.plp.card.image_ratio`:
+  envolva a imagem num bloco com `aspect-ratio: <ratio>` (`1/1`, `3/4`…) e altura
+  governada pela caixa — a `<img>` é `width:100% height:100%` + `object-fit` (`cover`
+  preenche/recorta; `contain` mostra inteira com respiro — escolha do comp, mas a **caixa
+  fixa é obrigatória**). Nunca deixe a `<img>` sem caixa de proporção (foi o que variou as
+  alturas).
+- **Corpo de altura previsível**: nome com `line-clamp` (nº de linhas fixo), preço/parcelas
+  e ação em posições constantes → dois cards lado a lado fecham na mesma altura mesmo com
+  nomes de tamanhos diferentes.
+- **Grid estica os cards juntos** (`items-stretch`/`h-full` no card) para a fileira ter
+  altura uniforme.
+- **Verifique por DOM**: meça `getBoundingClientRect().height` de todos os cards de um
+  shelf — devem ser **iguais**. Se variam, a media não tem ratio fixo (ou o corpo não
+  reservou as linhas). É check de gate (craft), não "olhar e achar que está ok".
+> Mesma regra do comp (`design-quality.md` → "Cards de grade = altura uniforme"): o
+> `image_ratio` do kit **só vale se virar caixa de proporção fixa** no template.
+
 ## Escala tipográfica (extrair do comp, não chutar)
 
 Pegue os tamanhos do **comp** da Skill 2:
@@ -357,7 +301,7 @@ em headers de drawer.
 > `.bk-cta-text`, `.btn`, secundário, "remover"…) inventando seu próprio par
 > tamanho/tracking — misturando `px` e `rem` para o MESMO papel visual. Resultado:
 > "chapéu" e link com pesos diferentes lado a lado, e a mesma navegação parecendo
-> de outra marca entre as telas. (No 1º caso, antes do audit: 9.6→16px × .02→.16em.)
+> de outra marca entre as telas. (Em caso real, antes do audit: 9.6→16px × .02→.16em.)
 
 Defina a escala como **tokens no `:root`** e faça todo papel caps puxar deles:
 
@@ -500,6 +444,26 @@ vez, via global. Checklist (ordem do mais barato/abrangente):
    Cobre coupon (verde), notify-me (vermelho), star (amarelo), setas (azul), +/-.
 3. **`bg-white` → token.** Drawers/sheets do litheme usam `bg-white` (frio).
    Troque por `bg-base-100` (a surface da marca). `bg-black/50` de scrim pode ficar.
+   ⚠️ **Lição (caso real): o pior `bg-white` mora no THEME.CSS, não num template.** O
+   litheme define **`@utility modal-box { @apply bg-white }`** — todo `.modal` (modal de
+   "mais formas de pagamento", etc.) nasce branco; em modo dark o texto é `base-content`
+   claro → **claro-sobre-branco invisível**. Um `grep bg-white templates/` **NÃO acha**
+   (está no CSS como utility). E é um **estado OCULTO** (só ao abrir o modal) → só o
+   **sweep de contraste do gate nos estados abertos** (§4f) pega. Fix de 1 linha:
+   `@utility modal-box { @apply bg-base-100; }`. Faça o mesmo p/ os painéis de
+   sheet/bottom-sheet (`p-6 bg-white` em coupon/shipping/notify-me/upon-request/floating-buy)
+   → `bg-base-100`. Mantenha branco só onde é intencional (placa de selo, packshot, thumb).
+   ⚠️ **Campos de FORMULÁRIO são o offender mais fácil de esquecer (lição: feedback humano).**
+   O litheme define **`@utility input { @apply … bg-white }`** (e `@utility textarea { bg-white }`)
+   — TODO input nasce **branco**: busca do header, CEP do buy-box, e-mail da newsletter, contato.
+   Num tema **dark** isso fura a coerência (campos brancos cravados no fundo escuro) — e o usuário
+   **vê na hora**. Não é um drawer oculto: aparece no chrome em toda página. Fix global:
+   `@utility input { @apply border border-base-300 bg-base-200 text-base-content; }` (+ placeholder
+   ≥4.5:1, ex. `#93a6c0`) e `@utility textarea { … bg-base-200 }`. **Regra geral: campo de form
+   SEGUE o modo do tema** — nunca `bg-white` num tema dark (nem `bg-base-100` escuro demais sem
+   borda visível). O mesmo vale para o `<label class="input">` wrapper do search-autocomplete do
+   litheme. Varra `grep -n "bg-white" assets/style/theme.css` (input/textarea/modal-box/floating-bar)
+   ANTES de declarar a fundação pronta.
 4. **Botões → os papéis fixos (sem terceiro estilo).** Já coberto acima: `.btn`/
    `.btn-primary` (preenchido) e `.bk-cta-text` (texto). Os **toggles** do minicart
    ("Calcular frete", "Cupom") são secundários (transparente + hairline); os
@@ -508,7 +472,7 @@ vez, via global. Checklist (ordem do mais barato/abrangente):
    litheme espalha `border`/`border-base-200`/`border-white/20`/`outline-black/10` em
    painéis flutuantes (mega-menu, dropdown de ordenação, autocomplete, sheets, popovers).
    Num reskin **dark-chrome** esses defaults viram **bordas claras/brancas AGRESSIVAS
-   sobre o navy** — destoam do comp (que usa filete sutil) e gritam. ⚠️ Lição (3º caso):
+   sobre o fundo escuro** — destoam do comp (que usa filete sutil) e gritam. ⚠️ Lição (caso real):
    a borda branca do mega-menu de categorias ficou "super agressiva e fora do comp".
    Trate borda como SISTEMA: defina `--bk-line` (sobre claro) e `--bk-line-on-dark`
    (`rgba(255,255,255,.12–.16)` sobre escuro) e faça os painéis puxarem deles. Para

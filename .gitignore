@@ -11,3 +11,7 @@ builds/
 # li-cli (sessão/credenciais ficam no home do usuário, nunca no repo — guard extra)
 .li/
 *.session
+
+# Claude Code local (permissões/sessão da máquina do dev — nunca no repo distribuído)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock

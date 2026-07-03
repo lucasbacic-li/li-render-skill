@@ -35,9 +35,47 @@ Em ordem de sinal (do mais hand-edited ao compilado):
 - Logo: `cdn.awsli.com.br/<conta>/logo/<hash>.png` (no HTML, `<img class="logo">`).
 - Favicon: `cdn.awsli.com.br/<conta>/favicon/<hash>.png` (`<link rel="icon">`).
 - A URL aceita **prefixo de resize** (`/400x300/<conta>/logo/...`); para o original,
-  **omita** o prefixo. Quase sempre **PNG** (raster) → registrar e marcar
-  `_uncertain` (revetorizar p/ SVG é ideal).
-- Banners/imagens da loja: `cdn.awsli.com.br/<x>/<conta>/arquivos/*.png|jpg`.
+  **omita** o prefixo. O do `<img class="logo">` quase sempre é **PNG** (raster).
+- ⚠️ **PROCURE O VETORIAL ANTES de marcar `_uncertain`.** Muitos temas LI guardam o
+  logo **SVG** em `arquivos/` (nomes tipo `logo-header-<marca>-desktop.svg`,
+  `logo-<marca>.svg`) — referenciado por `<img src>`/`background-image`/`style` (não
+  só no `<img class="logo">`). `grep -oiE 'arquivos/[^"'\'' )]*logo[^"'\'' )]*\.svg'` no
+  HTML. Se houver SVG, use-o como `logos.primary` (nitidez/recolor) e **não** marque
+  raster em `_uncertain`. Caiu pra PNG só se não existir SVG.
+
+## Imagens da loja — colha TUDO em `arquivos/` (não 1-3 amostras)
+
+Numa migração, **as imagens que o lojista subiu SÃO o conteúdo a migrar** (banners de
+hero, tiles de categoria, blocos editoriais). Elas vivem todas em
+`cdn.awsli.com.br/<x>/<conta>/arquivos/*.png|jpg|webp` — e a Skill 2 precisa **delas
+reais** nos comps (placeholder = falha de paridade). Como você já está raspando, colha
+**o conjunto inteiro de uma vez** (extraia de `<img src>` **e** dos `url(...)` em
+`style`/CSS — muitos banners são `background-image`):
+
+```bash
+# todos os assets de marca (banners/tiles/editorial) — não filtre por "amostra"
+grep -oiE "cdn.awsli.com.br/[0-9]+/<conta>/arquivos/[^\"' )]+\.(png|jpg|jpeg|webp|svg)" home.html \
+  | sort -u | while read u; do curl -sSL -A "$UA" -e "https://<loja>/" "$u" -O; done
+```
+
+Também baixe **um punhado de imagens de PRODUTO** (a Skill 2 usa nos cards do comp):
+`cdn.awsli.com.br/300x300/<x>/<conta>/produto/<id>/<hash>.jpg` — **sempre com Referer**
+(`-e "https://<loja>/"`) senão o CDN devolve placeholder 1×1 (proteção de hotlink). A URL
+real está no `<img ... class="imagem-principal" src=...>`, não no `data-src` (template
+`--PRODUTO_IMAGEM--`).
+
+> Objetivo: a Skill 2 monta os comps **a partir de `<kit>/assets/` + `reference/`** sem
+> reabrir o site. Subextrair aqui (e a Skill 2 re-raspar) é a redundância que mais
+> queima token no fluxo — faça a captura completa **uma vez**.
+
+⚠️ **Baixar TODOS ≠ marcar todos como faixa da home.** Assets em `arquivos/` aparecem
+**tanto no corpo da home quanto em decoração de mega-menu/dropdown/footer** (ex.:
+`imagem-drop-*`, ícones de console como `nes/snes/gameboy`). Baixe todos como referência,
+**mas só marque como faixa da home os que o render ao vivo mostra NO CORPO** (scroll de
+cima a baixo — ver `../url-ingestion.md`); para os demais, anote a origem (menu/dropdown/
+footer). Anti-padrão real: **tiles de console que eram decoração do dropdown foram
+descritos como uma faixa da home que não existia → a skill seguinte desenhou uma seção
+fantasma e a paridade quebrou.**
 
 ## Fontes
 
@@ -108,6 +146,10 @@ ser decoy; só o render ao vivo decide.
 - Preço aparecia numa cromática na PDP e na outra na PLP (inconsistência da loja
   antiga) — escolha o papel pelo **botão de compra**, não pela média.
 
-**Limitação de captura:** o `save_to_disk` do Chrome MCP grava fora do FS do agente
-→ os screenshots foram **revisados** mas não salvos em `reference/`; descrevemos as
-telas em `reference/README.md`. Para arquivar imagens, o humano salva manualmente.
+**Captura (resolvido):** use `scripts/capture-source.mjs` (Chrome headless) — ele grava o
+baseline renderado **direto no FS** (`reference/<label>.rendered.html` + `.bands.json` +
+`.full.png`). Não dependa do Chrome MCP para arquivar (o `save_to_disk` dele grava fora do FS
+do agente — bom para os *olhos* e interação, ruim para baseline). E **nunca** substitua o
+baseline por um `README.md` descrevendo as telas: numa loja LI clássica, faixas como a **tarja
+de aviso do topo**, a **faixa de USP** e os **banners por template-literal** são injetados por
+JS e **não aparecem no `curl`** — só o render (o `bands.json`) as enxerga.
