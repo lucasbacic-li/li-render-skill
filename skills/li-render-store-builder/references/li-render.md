@@ -84,16 +84,31 @@ Windows: mover p/ `%USERPROFILE%\li-cli\`, adicionar a pasta ao PATH, reabrir te
   preview retornam a **página de login do painel** (HTTP 200, mas é o admin). A
   sessão vive nos **cookies do perfil do Chrome** em que você fez `li-cli login`.
 
-  ⚠️ **O Chrome MCP (navegador conectado) NÃO serve mais para o preview.** Verificado:
-  ele **bloqueia** `localhost`, `127.0.0.1`, `file://`, **`*.lojas.li`** (preview) e
-  `*.lojaintegrada.com.br` ("Navigation to this domain is not allowed"). Ou seja: dá
-  pra abrir o **site de origem** (capturar baseline), mas **não** o preview nem comps
-  locais. (Texto antigo dizia "dirija o Chrome conectado ao preview" — não vale mais.)
+  ⚠️ **O Chrome MCP bloqueia `localhost`/`127.0.0.1`/`file://`** (comps locais) — para
+  esses use o preview MCP (server Node estático). **MAS o preview do tema (`*.lojas.li`)
+  VOLTOU a funcionar no Chrome conectado (verificado em caso real):** navegar para
+  `…/.theme/<tema>` seta o cookie de seleção e redireciona p/ `/`; daí dá pra
+  `getComputedStyle`/screenshot do preview autenticado direto no navegador conectado (ele
+  já está logado no painel via o `li-cli login`). Ou seja, para a **thread principal /
+  gate** rodando no navegador conectado, NÃO é preciso a receita headless+CDP. (O bloqueio
+  de `*.lojaintegrada.com.br` — loja pública pós-promote — pode persistir; aí sim headless.)
 
-  ✅ **Receita autônoma de verificação do preview autenticado (Chrome headless + CDP).**
-  Headless via Bash, usando uma **cópia do perfil do usuário** (carrega o cookie de
-  sessão do painel) e capturando via **CDP `Page.captureScreenshot`** (não o
-  `--screenshot` one-shot):
+  ⚠️ **A receita headless+CDP abaixo pode ser BLOQUEADA pelo classificador de segurança**
+  (copiar `Cookies`/`Local State` do perfil do Chrome é visto como exploração de
+  credential-store) — verificado em caso real. Consequências: (a) **sub-agentes de
+  workflow/Agent não conseguem** montar o headless autenticado sozinhos → a verificação
+  isolada por-componente do §4d cai para **prova determinística por `getComputedStyle`**
+  no navegador conectado (singleton, serializado), e o **gate independente** (§4f) roda na
+  thread orquestradora (que **não** implementou os componentes — quem implementou foram os
+  sub-agentes — então a independência se preserva). (b) Se precisar mesmo do headless+CDP,
+  **peça autorização explícita do usuário** antes de copiar o perfil.
+
+  🟡 **FALLBACK — Receita headless + CDP (use SÓ se o navegador conectado não servir, ex.:
+  sub-agente paralelo precisando do próprio browser).** Caro e bloqueável (ver caveat acima):
+  o caminho **primário** é o navegador conectado, que alcança o preview `.lojas.li`. A receita
+  headless usa uma **cópia do perfil do usuário** (carrega o cookie de sessão do painel —
+  **peça autorização**, o classificador pode barrar) e captura via **CDP `Page.captureScreenshot`**
+  (não o `--screenshot` one-shot):
   1. **Perfil:** copie `~/Library/Application Support/Google/Chrome/{Local State,
      Default/Cookies,Default/Preferences}` para um `--user-data-dir` próprio (ex.
      `/tmp/chrome-prof`). Rodando como o mesmo usuário do SO, os cookies (cifrados no
@@ -122,7 +137,7 @@ Windows: mover p/ `%USERPROFILE%\li-cli\`, adicionar a pasta ao PATH, reabrir te
   > `reference/`). A receita headless+CDP acima grava o PNG num caminho seu → dá pra
   > `Read` direto e rodar o diff comp×preview por **componente** e por página.
 
-  ⚠️ **Gotchas de execução verificados (2º caso):**
+  ⚠️ **Gotchas de execução verificados (caso real):**
   - **Conecte ao TARGET DA PÁGINA, não ao browser.** `http://localhost:<port>/json/version`
     devolve o endpoint do **browser** (sem domínio `Page`/`Runtime` → `captureScreenshot`
     volta `undefined`). Use `http://localhost:<port>/json`, ache `type:"page"` e use o
@@ -138,7 +153,7 @@ Windows: mover p/ `%USERPROFILE%\li-cli\`, adicionar a pasta ao PATH, reabrir te
     nudge no `.min.css` por comentário NÃO muda o conteúdo → faça uma mudança de regra
     real, ou nudge o `.liquid`/`.json`.)
 
-  ⚠️ **Gotchas de IMPLEMENTAÇÃO do cliente CDP (ao escrever o script de captura) — 3º caso:**
+  ⚠️ **Gotchas de IMPLEMENTAÇÃO do cliente CDP (ao escrever o script de captura) — caso real:**
   - **Forma da resposta CDP: `{id, result:{…}}`, e `Runtime.evaluate` ANINHA mais um
     `result`.** O valor do eval está em **`msg.result.result.value`** (o `result` externo é
     o envelope CDP; o interno é o RemoteObject). Ler `msg.result.value` devolve `undefined`
@@ -537,6 +552,18 @@ Base: `https://{slug}-preview.lojas.li/.docs/` (qualquer conta serve a mesma doc
   criado antes do sync iniciar, ou tocado (`touch`)/copiado-igual, NÃO sobe. Para
   texto: faça uma mudança de conteúdo. Para binário (imagem): `rm` + esperar > o
   intervalo + `cp` de volta (evento de create). Confirme no log.
+- 🔴 **O watcher do `sync -r` MORRE num arquivo temporário de editor e PARA de subir
+  (verificado).** Sub-agentes editando `.liquid` deixam artefatos tipo
+  `.!12345!notify-me-sheet.liquid` (swap/atomic-save); o watcher tenta lê-los, dá
+  `Error: Could not find file '.../.!NNN!...'` e **trava em silêncio** — o `theme.min.css`
+  e templates editados depois disso **não sobem**, e o preview fica **stale** (parece que a
+  fundação/edição "não aplicou", quando na verdade nunca chegou ao servidor). **Sintoma
+  clássico:** `getComputedStyle` no preview mostra os tokens ANTIGOS mesmo após `build:css`
+  ok e o `.min.css` local correto. **Conserto:** `find <tema> -name '.!*' -delete`, reinicie o
+  `sync -r`, e faça um **`push` completo** (sobe `theme.min.css` + tudo) — não confie no sync
+  para o upload de recuperação. Antes de concluir que "a fundação não cascateou", **confirme
+  que o `theme.min.css` realmente subiu** (procure `style/theme.min.css` no log do sync, ou
+  re-push).
 - **Esgotamento de PTY em sessões longas.** A harness (app) segura ~todos os PTYs
   do sistema (`sysctl kern.tty.ptmx_max`, ex. 511). Aí `pty.fork()` (usado p/
   responder o prompt interativo do `push`/`promote`) falha com **"out of pty

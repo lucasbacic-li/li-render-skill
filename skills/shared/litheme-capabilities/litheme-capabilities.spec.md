@@ -55,11 +55,29 @@ desenha sabendo dele):
 | `radius.field/box/selector` | `--radius-field` / `--radius-box` / `--radius-selector` | direto; `field`=botões/inputs, `box`=cards/modais/drawers, `selector`=controles pequenos |
 | funcionais (info/success/warning/error) | manter os do litheme ou puxar de `palette` | a paleta antiga (#0846EF azul, #27A47D verde, #FF6265 vermelho) é off-brand pós-reskin — ver gotcha de ícones |
 
-> **Padrão de hierarquia de cor (genérico, lição do 1º caso).** Defina
+> **Padrão de hierarquia de cor (genérico, lição de caso real).** Defina
 > `--color-base-content` = `ink_muted` (clareia todo o corpo de uma vez), e
 > **force** títulos/dados fortes de volta a `ink` com regras fora de `@layer`.
 > Sem isso, ou o corpo fica escuro demais (utility vence o `html{color}`), ou tudo
 > fica forte (hierarquia achatada).
+
+## `theme_mode` → DaisyUI (modo único light/dark)
+
+O kit traz **`theme_mode.mode`** (`light`|`dark`), decidido pela Skill 2 — *um* modo
+para a loja inteira (ver `../brand-kit-spec/`). A Skill 3 **implementa**, não re-decide.
+O DaisyUI foi feito para isso: um tema coerente resolve o contraste **nativamente**
+(`base-content` é sempre legível sobre `base-100/200/300`), sem carve-back por região.
+
+| `theme_mode.mode` | Como mapeia no bloco `@plugin "daisyui/theme"` |
+|---|---|
+| `light` (default litheme) | `color-scheme: "light"`; `surface`→`base-100`/`neutral` claros; `ink`→`base-content` escuro. Caminho padrão, nada a inverter. |
+| `dark` | `color-scheme: "dark"`; `surface`→`base-100/200/300` **escuros**; `ink`→`base-content` **claro**. O sistema inverte de uma vez (cards, drawers, painéis aninhados). |
+
+- **Seções invertidas** (`theme_mode.inverted_sections`): acento **contido** (ex.:
+  rodapé escuro num tema light) via `surface_dark`/`ink_inverse` — não muda o modo.
+- **Exceção "chrome≠conteúdo"** (híbrido: body escuro + tiles claros): briga com o
+  DaisyUI → exige carve-back de contraste; **não é o default**. Só quando o kit pede
+  explicitamente (decisão consciente). Receita em `../../li-render-store-builder/references/dark-hybrid-exception.md`.
 
 ## Convenção de re-ancoragem (anonimização)
 
@@ -107,6 +125,44 @@ não recriáveis):
 | `hero` | herói | `props.slides` (válido no schema) |
 | busca | resultados | GET `/search?q=` (input `name=q`) |
 | categoria | PLP | via `get_current_category` / `get_products` |
+
+## Forkar é o DEFAULT; apropriar o nativo é a exceção (3 componentes) — registre a escolha
+
+> Correção estruturante (caso real: o reskin ficou **preso no nativo**). **Forkar/reestruturar
+> o componente para casar o comp é o caminho NORMAL** — é o valor do LI Render (lojas muito
+> customizadas e de alta performance). Forçar o reskin do nativo **limita a flexibilidade do
+> renderizador**. Para CADA componente, o default é: **o comp manda a estrutura; reestruture o
+> template nativo para batê-lo.** Há só **uma lista curta de exceções** que preservam o nativo.
+
+**🔒 Os 3 componentes PRESERVE-NATIVE (reskine, não forke sem pedido explícito):**
+- **mini-cart** — carrega comportamento nativo crítico de conversão: **desconto progressivo**,
+  alerta de **frete-grátis**, **cupom**, **frete por CEP**. Recriar quebra isso.
+- **prévia de busca ao vivo / autocomplete** — carrega a **prateleira de produtos** + as
+  **sugestões de termo** nativas.
+- **filtros de busca** — preserve os **filtros nativos**. O usuário pode *adicionar* itens à
+  lateral, mas os filtros só mudam se ele **provocar a mudança explicitamente**.
+> Para esses 3: `native` → `migrate`/`modernize` (reskin), e o comp **espelha a estrutura
+> nativa**. Forkar um deles exige pedido explícito do usuário.
+
+**Todo o resto (header, footer, PDP/buy-box, product-card, seções de home, layout da PLP…) →
+forke por default:** `build-custom` (ou `native-restructure` → `modernize` com reestruturação
+real). O comp desenha a estrutura nova **livremente**; a Skill 3 **constrói/reestrutura** para
+batê-la (não "enfia no nativo"). `build-custom` aqui **não exige justificativa pesada** — é o
+esperado. (Mesmo forkando a ESTRUTURA, o estilo continua vindo do sistema — tokens, `.btn`,
+papéis — ver `../../li-render-store-builder/references/global-styling.md`: fork de *estrutura*
+≠ fork de *estilo*.)
+
+> **O que NÃO pode** é a **divergência silenciosa nos dois sentidos**:
+> 1. inventário diz `native`/`migrate` mas o comp diverge do nativo → a Skill 3 reskina e
+>    **diverge do comp por acidente** (caso real: footer com colunas não-nativas marcado
+>    `migrate` → ficou nas colunas nativas; PDP marcada para reskin → descrição full-width em
+>    vez da zona ancorada do comp);
+> 2. a Skill 3 **preserva a estrutura nativa de um componente que não é um dos 3** "porque
+>    reskin é mais seguro" → deixou de implementar o comp.
+> **Regra:** a escolha forkar-vs-preservar é **explícita no `migration-inventory.json`**
+> (`litheme_support` + `decision`) e o **comp é coerente com ela**. Default = forkar para casar
+> o comp; preserve-native só para os 3 (ou sob pedido). Divergir do comp sem decidir é o bug —
+> e "ficar no nativo por segurança" é a forma mais comum desse bug.
 
 ## Funções de dados disponíveis
 

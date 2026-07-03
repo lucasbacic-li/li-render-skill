@@ -7,7 +7,7 @@ preview ao vivo contra eles).
 
 ## Escopo v1 — GALERIA DE COMPONENTES + comps de composição
 
-> **Lição do 1º caso (mudança de formato).** Comps **só de página** são um alvo ruim
+> **Lição de caso real (mudança de formato).** Comps **só de página** são um alvo ruim
 > para a Skill 3: ela recolore o componente do litheme, screenshota a página inteira,
 > "vê" que ficou na cor certa e **declara pronto** — sem nunca convergir a *estrutura*
 > do componente ao comp (header recolorido ≠ header do comp). O comp de página
@@ -52,16 +52,43 @@ recorte real correspondente (header×header, card×card) — diff barato e inequ
 só depois cruze os comps de **página** (composição: seções na ordem certa). A barra é
 o equilíbrio de **paridade** + **modernização**:
 
-**A. Paridade com o site atual** — cruzar o comp contra os **screenshots reais**
-(em `<kit>/reference/`), não decidir de memória:
-- mesmas **seções principais**, na mesma ordem (hero, prateleiras, sidebar de
-  filtros, buy-box, etc.);
-- mesma **estrutura de fundo por região** — confirmada por screenshot (ex.: chrome
-  escuro vs. conteúdo claro; uma PLP escura ou clara é fato a verificar, não a supor);
+**A. Paridade com o site atual** — diffar o comp contra o **baseline renderado** em
+`<kit>/reference/` (`*.bands.json` = faixa/ordem/conteúdo/modo; `*.full.png` = layout/visual),
+nunca de memória nem de HTML cru. ⛔ **Falha-fechado:** se o baseline renderado não existir, o
+auto-check **não passa** (o "0 divergências" é incomputável sem ground-truth) — gere o baseline
+com `../../brand-kit-extractor/scripts/capture-source.mjs` antes de seguir. Cheque:
+- mesmas **faixas principais, na mesma ORDEM** — cruze a sequência do comp contra a ordem das
+  faixas no `bands.json` (hero, USP, vitrines, banners, editorial, rodapé). Faixa do `bands.json`
+  que não tem correspondente no comp = **faixa faltando**; faixa no comp ausente do `bands.json` =
+  **faixa inventada**;
+  > 🔴 **A ordem é uma LISTA MECÂNICA, não um "parece certo".** Não componha a página de
+  > memória/intuição e depois "olhe se bate". **Extraia a ordem das seções do `bands.json` como
+  > lista numerada e componha o comp NESSA ordem, índice a índice.** Qualquer reordenação vs o
+  > `bands.json` (mesmo que "faça mais sentido") é **divergência** que exige decisão consciente
+  > registrada — não um efeito colateral silencioso. ⚠️ Anti-padrão real: uma **faixa de USP/
+  > benefícios** que o fonte tem **ABAIXO do hero** foi composta **ACIMA** dele (reflexo de "trust
+  > bar embaixo do header"); e uma **fileira de banners de conteúdo** (tiles por plataforma/
+  > categoria) que o fonte tinha **sumiu** na composição. As duas escaparam porque o check foi
+  > visual e não uma conferência item-a-item da torre de faixas. Faça a lista; cada índice do
+  > `bands.json` ou tem correspondente no comp **na mesma posição**, ou é `drop`/modernização
+  > registrada.
+- mesma **estrutura de fundo por região** — o `bands.json` traz `mode` (claro/escuro) por faixa, e
+  o `full.png` mostra o nível de card (tile claro sobre seção escura aparece como faixa `dark` —
+  cruze os dois). **Cuidado:** isto NÃO autoriza herdar uma mistura de modos light/dark do fonte
+  (ver critério **E** — o modo é uma decisão única; um rodapé escuro deliberado num tema light é
+  acento, não modo);
 - **assets reais usados onde existem** — é **erro emular** um banner/logo/imagem de
   produto que já foi baixado em `<kit>/assets/`. Placeholder só onde o asset
   genuinamente não existe (e mesmo aí, estilizado para parecer intencional);
-- cor/tipo/raio/microcopy puxando dos papéis do kit e batendo com o real.
+- cor/tipo/raio puxando dos papéis do kit e batendo com o real;
+- **microcopy de faixa que existe no fonte = copy LITERAL do fonte** (USP,
+  benefícios, banners, CTAs de seção). A voz do kit só preenche o que o fonte **não**
+  tem. Reescrever a copy de uma faixa existente ("texto moderno" no lugar do original)
+  é divergência, não modernização;
+- **toda faixa/seção do comp existe no site-fonte** (com prova em `reference/`) **OU**
+  é modernização consciente registrada. Faixa que o fonte não tem, sem registro =
+  divergência injustificada (`build-custom` reproduz o real, não inventa — ver
+  `content-surfaces.md`).
 
 **B. Modernização (litheme)** — aplicar os padrões melhores do litheme (drawer
 mini-cart, sticky buy-box, hover de card, grid responsivo, container fluido) **sem
@@ -72,13 +99,68 @@ justificado é exceção anotada).
 
 **D. Responsivo** — desktop **e** mobile sem quebra.
 
+**E. Modo de tema ÚNICO (light OU dark)** — todos os comps num só modo, decidido no
+kit (`theme_mode`, ver `brand-kit.spec.md`). Lojas-fonte costumam **misturar** modos
+de forma inconsistente (ex.: chrome dark + miolo da PDP light) — isso é **débito de
+usabilidade**, não paridade a preservar. Padronize para um modo (decisão `modernize`
+registrada) para que o reskin de tokens implemente um light/dark coerente, com o
+contraste resolvido **nativamente pelo DaisyUI** (`base-100/200/300` + `base-content`),
+sem carve-back manual. **Exceção** (cara, deliberada): chrome≠conteúdo só quando a
+marca genuinamente exige — e, mesmo aí, seções invertidas são **acento contido**
+(`surface_dark`/`ink_inverse`), nunca modo ambíguo por página. O auto-check do loop
+reprova qualquer mistura de modo não-justificada.
+> ⚠️ **O modo inclui os CAMPOS DE FORMULÁRIO — não só fundos e textos** (lição:
+> feedback humano num E2E dark). Num tema **dark**, inputs/selects/textarea brancos
+> (busca, CEP, newsletter, contato) furam a coerência tanto quanto um painel branco —
+> e saltam aos olhos porque vivem no chrome de toda página. O reflexo de pôr `bg:#fff`
+> num input (porque "campo é branco") vem do hábito light. **Regra:** o campo segue o
+> modo — fundo dark (`base-200`/`base-300`), texto claro, placeholder ≥4.5:1. O sweep
+> do critério E deve varrer **inputs**, não só `body`/seções. (O litheme reforça isso:
+> seu `@utility input` nasce `bg-white` — ver `global-styling.md` §"Pass único" item 3.)
+
+**F. Cobertura do inventário** — todo item `must`/`should` do `migration-inventory.json`
+(ver `../../shared/migration-inventory-spec/`) está **coberto**: aparece num comp
+(`status: present`) **ou** é `drop`/`reintegrate-app` consciente com `rationale`
+(`status: dropped`). A barra é **0 item não-contabilizado** — não "0 item faltando"
+(gate é só-alerta; o humano decide na Fase 5 com o `must` faltando destacado). Os
+`build-custom` viram comp próprio em `comps/components/` (ex.: `usp-bar.html`) —
+**reproduzindo o bloco real do fonte** (copy literal, banners/assets reais,
+comportamento), não um equivalente autoral; os
+`store-app`/`reintegrate-app` **não** viram comp (são config de loja), só constam no
+relatório. Atualize o `status` de cada item conforme fecha o loop.
+
+**G. Largura e full-bleed coerentes** — o comp se compromete com o `layout` do kit
+(ver `../../shared/brand-kit-spec/`): uma régua de conteúdo única (`contained` cap
+fixo, ou `fluid-up` que cresce com a viewport) reusada em **todas** as seções, e as
+seções `full_bleed` marcadas (fundo sangra 100%, conteúdo alinha no mesmo gutter/cap).
+Não invente max-width/gutter por seção (desalinha do resto). Decisão recorrente —
+feche-a no comp, não deixe pra Skill 3 adivinhar.
+> 🔴 **`full_bleed` é VERIFICADO contra o `full.png`, não só declarado.** A escolha
+> **banner contido × banner sangrando (100vw)** é uma das decisões mais recorrentes — e a que
+> mais "fura" por ser declarada no kit e nunca materializada. Para CADA seção em
+> `layout.full_bleed` (tipicamente **hero/full-banner**, tarja de aviso, faixas de seção,
+> rodapé): **olhe o `full.png` do fonte** — o banner vai de **borda a borda** da viewport ou
+> para no cap de conteúdo? Materialize o comp **igual ao fonte**. Um hero que sangra no fonte e
+> aparece **limitado ao container** no comp é **divergência de paridade** (critério A), não
+> "detalhe de layout". Anti-padrão real: full-banner do fonte era `width:100%` e o comp/tema o
+> deixou preso nos ~1280px. O comp deve mostrar o sangramento explicitamente (fundo 100vw +
+> conteúdo no `.container`) para a Skill 3 ter alvo inequívoco.
+
+**H. Refino de craft** — o comp passa na régua de `references/design-quality.md`
+(*herdar identidade, ganhar refino*): escala de espaçamento + ritmo, medida de linha +
+`text-wrap`, contraste/legibilidade, **todos os estados** (incl. empty/loading), alvos
+≥44px, zero overflow, motion contido. Não é licença pra mexer na identidade (paleta/
+fonte/raio vêm do kit) — é o craft mecânico que faz a loja parecer feita com capricho.
+
 ### O loop (executar até passar)
-1. **Capturar a página real** → baseline em `reference/`.
+1. **Baseline renderado** já está em `reference/` (`*.bands.json` + `*.full.png`, da Skill 1);
+   se faltar, gere com `capture-source.mjs` **antes** — sem ele o loop não fecha (critério A).
 2. Montar/ajustar o comp.
 3. **Screenshot do comp** (preview) — servido no **caminho real** do arquivo, p/ os
    links relativos (`../tokens.css`, `_shared.css`) resolverem.
-4. **Diff contra a baseline**: liste TODA divergência (seção faltando, fundo errado,
-   asset falso, cor fora do papel, microcopy).
+4. **Diff contra a baseline**: liste TODA divergência (seção faltando, **seção
+   INVENTADA que o fonte não tem**, fundo errado, asset falso, cor fora do papel,
+   **copy de faixa reescrita** em vez da copy literal do fonte).
 5. Para cada divergência: **corrigir**, OU registrá-la como **decisão consciente**
    (modernização deliberada — ex.: padronizar a cor de preço que o site usa
    inconsistente — ou limitação de dado — ex.: produto sem imagem) **com o porquê**.
@@ -126,10 +208,14 @@ trava). Neste ambiente, dois caminhos óbvios **não funcionam**:
 >   `@media`** → o grid fica fixo no mobile. Não inline colunas de grid em componente
 >   que deve responder; deixe a classe (`.shelf` 4→2) governar.
 
-> **Captura da baseline real:** o `save_to_disk` do Chrome MCP grava **fora** do FS
-> do agente — os PNGs do site de origem **não** arquivam em `reference/`. Baixe as
-> **imagens reais do CDN** (banners/produtos) via `curl` e **descreva as telas** num
-> `reference/README.md` (que vira a baseline textual do diff). Ver a skill A.
+> **Captura da baseline real (resolvido):** a baseline vem de
+> `../../brand-kit-extractor/scripts/capture-source.mjs` (Chrome headless → `*.rendered.html`
+> + `*.bands.json` + `*.full.png` gravados **direto em `reference/`**). **Nunca** use uma
+> descrição textual de tela como baseline de diff (é circular — você acaba "validando" o comp
+> contra a sua própria narrativa). O Chrome MCP serve para os seus **olhos** e interação (abrir
+> dropdown/hover no site-fonte), não para arquivar baseline (seu `save_to_disk` grava fora do FS).
+> As **imagens reais de produto/banner** (para os comps) continuam vindo do CDN via `curl` na
+> Skill 1, em `<kit>/assets/`.
 
 ## Regras de fidelidade (para o comp ser um bom alvo de QA)
 
@@ -164,17 +250,29 @@ trava). Neste ambiente, dois caminhos óbvios **não funcionam**:
    `-e "https://<loja>/"` (Referer) no `curl`, ele devolve um **placeholder 1×1**
    (parece que baixou, mas é 1 byte de imagem). Sempre passe o Referer e confira o
    tamanho real do arquivo.
+   ⚠️ **Lição (caso real): banner ≠ placeholder.** O comp da home saiu com **caixas
+   vazias** (botão "Confira"/"Compre aqui" num retângulo de cor sólida) no lugar das **grades de
+   banner de categoria** — o gate reprovou ("ficou ruim de validar o layout"). Banners
+   de categoria/promo de lojas LI estão em `cdn.awsli.com.br/<x>/<conta>/arquivos/`
+   (nomes tipo `imagem-drop-<cat>-desktop.png`, `mid-0x.png`, `imagem-about-desktop.png`)
+   e **muitos são `background-image` por CSS** (não `<img>`) — extraia também os
+   `url(...)` de `style`/folhas, não só `img[src]`. Baixe-os e use no comp; placeholder
+   só onde o asset genuinamente não existe.
+   💡 **Bônus de fidelidade:** o **logo vetorial** costuma existir em `arquivos/`
+   (ex.: `logo-header-<marca>-desktop.svg`) mesmo quando o `<img class="logo">` aponta
+   um PNG raster — procure o `.svg` e prefira-o (nitidez/recolor; resolve o `_uncertain`
+   de logo raster da Skill 1).
 7. **Chrome de baixo (footer) é alvo de fidelidade, não rascunho.** O footer real de
    lojas LI costuma ter **mais** do que 4 colunas: **newsletter**, faixa **"Pague com"
    (ícones de pagamento)**, **"Selos" (selos de confiança/SSL/avaliações)** e a
-   **atribuição da Loja Integrada**. ⚠️ Lição (3º caso): o comp de footer saiu
+   **atribuição da Loja Integrada**. ⚠️ Lição (caso real): o comp de footer saiu
    simplificado (só 4 colunas + barra) e a B, casando com ele, **perdeu** payment-icons/
    newsletter/selos que existiam no site e no litheme — e deixou a atribuição LI como uma
    barra branca destoante. Capture o footer **inteiro** da baseline e materialize-o; marque
    a atribuição LI como **integrada ao layout** (mesma faixa escura), não um bloco solto. Se
    algum elemento (selos/pagamento) vem de settings/função, marque o ponto de dado (regra 4).
 
-## Como apresentar para aprovação (Fase 4)
+## Como apresentar para aprovação (Fase 5)
 - Renderizar cada comp (preview tools / navegador) e mostrar screenshots
   desktop **e** mobile.
 - Destacar as decisões de commerce que cada comp materializa.

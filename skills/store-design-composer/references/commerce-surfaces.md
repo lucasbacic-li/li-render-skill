@@ -10,6 +10,16 @@ litheme** que materializa, (d) como vira **comp** + campo no bloco `commerce`.
 > **Método.** Nunca apresente uma decisão como pergunta em branco. Apresente o
 > **default já proposto** ("dado que sua marca é X, sugiro Y, porque Z") e deixe o
 > cliente ajustar. Decisão derivada > decisão pedida.
+>
+> ⚠️ **O default parte do COMPORTAMENTO OBSERVADO no fonte; as primitivas afinam o
+> ESTILO, não decidem SE o controle existe.** Para cada decisão (inclusive
+> `card.add_to_cart`): primeiro olhe o que o fonte **faz** (o product-card tem botão
+> no card? clica no card→PDP? a busca tem autocomplete?) — isso fixa o default. Só
+> então as primitivas da marca (accent forte, raio, etc.) decidem a **aparência** do
+> controle que já existe. Um accent forte deixa o botão mais visível — **não cria** um
+> botão onde o fonte não tem. **Não adicione um controle (botão no card, etc.) que o
+> fonte não tem: isso é mudança de comportamento, exige decisão consciente registrada
+> (`modernize` com rationale), não um efeito colateral do default.**
 
 ## Sinais do kit que guiam os defaults
 
@@ -17,7 +27,7 @@ litheme** que materializa, (d) como vira **comp** + campo no bloco `commerce`.
 |---|---|
 | `radius.scale: sharp` | cards quadrados, divisórias hairline, CTAs retos |
 | `radius.scale: round` | cards/botões arredondados, pílulas, mais suave |
-| `accent` forte/saturado | CTA preenchido (`cta_style: filled`), add-to-cart visível |
+| `accent` forte/saturado | **estilo** do CTA que JÁ existe: preenchido (`cta_style: filled`), controle mais visível — **não** "criar add-to-cart no card se o fonte não tem" |
 | paleta neutra/contida | CTA discreto (`text-link`), grids arejados |
 | `typography.mono` presente | labels/preços em mono, eyebrows técnicos |
 | catálogo pequeno | grid 2–3 col, PLP simples; catálogo grande → 3–4 + filtros |
@@ -47,7 +57,7 @@ Microcopy vem de `voice.microcopy` (ex.: `empty_cart`).
 | `card.image_ratio` | `3:4` (moda) | livre | product-card |
 | `card.fit` | `cover` (foto c/ fundo) · `contain` (packshot recortado) | — | product-card |
 | `card.shows` | `["name","price"]` (+`rating` se houver) | subconjunto | product-card |
-| `card.add_to_cart` | `text-link` (neutro) · `button` (accent forte) | `text-link`·`button`·`icon`·`none` | HTMX `product-buy-url` |
+| `card.add_to_cart` | **parte do fonte**: card sem ação→`none` (clica no card→PDP); card com botão→`button` (depois o accent afina o ESTILO) | `text-link`·`button`·`icon`·`none` | HTMX `product-buy-url` |
 | `filters` | `drawer` (nativo) | `drawer`·`sidebar`·`topbar` | filtros |
 | `sort` | `dropdown` | — | controle de ordenação |
 | `pagination` | `load-more` | `pages`·`load-more`·`infinite` | listagem |

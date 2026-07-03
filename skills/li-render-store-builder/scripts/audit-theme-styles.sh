@@ -61,10 +61,10 @@ else
   echo "ok — theme.css não encontrado (pulando check CSS)"
 fi
 
-b "11. BORDA/OUTLINE clara em painel flutuante (dark-chrome: vira borda branca AGRESSIVA sobre navy → use hairline tokenizada --bk-line-on-dark)"
+b "11. BORDA/OUTLINE clara em painel flutuante (dark-chrome: vira borda branca AGRESSIVA sobre o fundo escuro → use hairline tokenizada --bk-line-on-dark)"
 g 'border-white|outline-black|outline-white|border-(base-200|gray-[0-9])|/(10|20)( |"|$)' \
   | grep -iE 'mega|dropdown|menu|autocomplete|suggest|floating|popover|drawer|sheet|tooltip' | show
-echo "   ↑ Em reskin dark-chrome, bordas claras do litheme (border-white/20, outline-black/10, border-base-200) gritam sobre o navy. Trocar por var(--bk-line-on-dark) (rgba branco .12–.16) ou border-transparent+sombra. Verifique nos estados ABERTOS (hover/focus)."
+echo "   ↑ Em reskin dark-chrome, bordas claras do litheme (border-white/20, outline-black/10, border-base-200) gritam sobre o fundo escuro. Trocar por var(--bk-line-on-dark) (rgba branco .12–.16) ou border-transparent+sombra. Verifique nos estados ABERTOS (hover/focus)."
 
 b "COMO LER"
 cat <<'EOF'

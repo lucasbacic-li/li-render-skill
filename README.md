@@ -36,8 +36,8 @@ ser chamadas explicitamente por `/li-render:brand-kit-extractor`,
 flowchart LR
     URL["URL do site<br/>(ou pasta de marca)"] --> S1
     S1["<b>Skill 1</b><br/>brand-kit-extractor<br/><i>extrai identidade</i>"] --> BK["brand-kit.json<br/>cor · tipo · logo · raio · voz<br/>(commerce = null)"]
-    BK --> S2["<b>Skill 2</b><br/>store-design-composer<br/><i>decide commerce + comps</i>"]
-    S2 -. "gate de aprovação<br/>do cliente" .-> KIT["kit + bloco commerce<br/>+ comps/ (alvo de QA)"]
+    BK --> S2["<b>Skill 2</b><br/>store-design-composer<br/><i>mapeia paridade + decide design</i>"]
+    S2 -. "gate de aprovação<br/>do cliente" .-> KIT["kit + commerce + theme_mode<br/>+ migration-inventory + comps/ (alvo de QA)"]
     KIT --> S3["<b>Skill 3</b><br/>li-render-store-builder<br/><i>implementa via li-cli</i>"]
     S3 --> THEME["tema no preview<br/>→ (promote) produção"]
 ```
@@ -45,10 +45,12 @@ flowchart LR
 - **`brand-kit-extractor` (Skill 1)** — pega uma **URL** (Figma depois) e destila a
   identidade (cor, tipo, logo, raio, voz) num **brand-kit** leve. `commerce` sai
   `null` de propósito. Não toca na conta da Loja Integrada.
-- **`store-design-composer` (Skill 2)** — o passo do **meio**: decide as superfícies de
-  commerce (**mini-cart, busca/PLP, PDP** — que o scrape não responde), grava no
-  bloco `commerce` do kit e produz **comps HTML fiéis** do alvo. **Gate de
-  aprovação do cliente** antes da implementação.
+- **`store-design-composer` (Skill 2)** — o passo do **meio**, com **dois papéis**:
+  (1) **mapeia a paridade** de migração com o site-fonte (home, menu, rodapé, busca/
+  PLP/PDP, apps — eixos funcional + conteúdo) num **`migration-inventory.json`**,
+  classificando o esforço contra o litheme; (2) **decide o design** — commerce, modo
+  de tema (light/dark **único**) — e produz **comps HTML fiéis**, modernizando sem
+  perder paridade. **Gate de aprovação do cliente** (comps + relatório de paridade).
 - **`li-render-store-builder` (Skill 3)** — pega o **kit já desenhado** e implementa o
   tema na conta do lojista via `li-cli`: reskina o litheme, **verifica o preview ao
   vivo contra os comps** + as redes de QA, e (com aprovação) publica.
@@ -87,19 +89,22 @@ flowchart TB
 
 skills/                            ← as skills + contratos (descobertas pelo Claude Code)
 ├── shared/                        ← CONTRATOS COMPARTILHADOS (irmão das skills)
-│   ├── brand-kit-spec/            ← contrato de DADO (1 → 2 → 3)
+│   ├── brand-kit-spec/            ← contrato de DADO (1 → 2 → 3): identidade + commerce + theme_mode
 │   │   ├── brand-kit.spec.md      ← formato do brand-kit (fonte da verdade)
 │   │   └── examples/brand.kit.example.json
-│   └── litheme-capabilities/      ← contrato de RESTRIÇÃO (2 desenha dentro, 3 implementa contra)
-│       └── litheme-capabilities.spec.md
+│   ├── litheme-capabilities/      ← contrato de RESTRIÇÃO (2 desenha dentro, 3 implementa contra)
+│   │   └── litheme-capabilities.spec.md
+│   └── migration-inventory-spec/  ← contrato de PARIDADE (2 produz, 3 consome)
+│       ├── migration-inventory.spec.md
+│       └── examples/migration-inventory.example.json
 │
 ├── brand-kit-extractor/           ← SKILL 1 (extrai) — URL → brand-kit
 │   ├── SKILL.md                   ← 5 fases (capturar → destilar → montar → confirmar → entregar)
 │   └── references/                ← url-ingestion, color-distillation, kit-output, platforms/
 │
-├── store-design-composer/         ← SKILL 2 (desenha) — brand-kit → commerce + comps
-│   ├── SKILL.md                   ← 4 fases (derivar → elicitar → comps → aprovação)
-│   └── references/                ← commerce-surfaces (matriz de decisão), comp-authoring
+├── store-design-composer/         ← SKILL 2 (mapeia paridade + desenha) — brand-kit → inventory + commerce + comps
+│   ├── SKILL.md                   ← 5 fases (derivar → INVENTARIAR → elicitar → comps → aprovação)
+│   └── references/                ← content-surfaces (paridade), commerce-surfaces, comp-authoring, design-quality
 │
 └── li-render-store-builder/       ← SKILL 3 (implementa) — kit + comps → tema LI
     ├── SKILL.md                   ← 6 fases + redes de QA
@@ -113,11 +118,15 @@ skills/                            ← as skills + contratos (descobertas pelo C
 ## Os contratos compartilhados
 
 - **`brand-kit`** (dado) — fronteira 1→2→3. A Skill 1 escreve, a 2 enriquece
-  (`commerce` + `comps/`), a 3 consome. `$schema: "li-render/brand-kit@1"`. Ver
+  (`commerce` + `theme_mode` + `comps/`), a 3 consome. `$schema: "li-render/brand-kit@1"`. Ver
   [skills/shared/brand-kit-spec/brand-kit.spec.md](skills/shared/brand-kit-spec/brand-kit.spec.md).
-- **`litheme-capabilities`** (restrição) — o que o litheme renderiza barato. A Skill 2
-  usa como guardrails de design; a 3 como alvo de implementação. Ver
+- **`litheme-capabilities`** (restrição) — o que o litheme renderiza barato + o mapa
+  `theme_mode`→DaisyUI. A Skill 2 usa como guardrails; a 3 como alvo. Ver
   [skills/shared/litheme-capabilities/litheme-capabilities.spec.md](skills/shared/litheme-capabilities/litheme-capabilities.spec.md).
+- **`migration-inventory`** (paridade) — o que precisa migrar do site-fonte (funcional
+  + conteúdo), por superfície, no balde de esforço certo. A Skill 2 produz, a 3 consome
+  e reporta paridade. `$schema: "li-render/migration-inventory@1"`. Ver
+  [skills/shared/migration-inventory-spec/migration-inventory.spec.md](skills/shared/migration-inventory-spec/migration-inventory.spec.md).
 
 ## Glossário rápido
 
@@ -134,6 +143,9 @@ skills/                            ← as skills + contratos (descobertas pelo C
 
 ## Estado
 
+> Snapshot do que já funciona vs. o que falta. Para o histórico de como chegamos aqui
+> (o que mudou de uma versão pra outra), ver [CHANGELOG.md](CHANGELOG.md).
+
 - [x] **Contratos v1**: `brand-kit` (dado) + `litheme-capabilities` (restrição)
 - [x] **Skill 3** validada ponta-a-ponta e **re-ancorada no litheme real** (v49)
 - [x] **Faseamento ORQUESTRADO** na Skill 3 (orquestrador fino + 1 sub-agente por
@@ -146,8 +158,41 @@ skills/                            ← as skills + contratos (descobertas pelo C
 - [x] **Round de feedback ao vivo** → 3 aprendizados genéricos gravados: o gate exerce
       **estados hover/aberto** (não só drawer); **bordas** como eixo do pass sistemático;
       **fidelidade do rodapé** (capturar Newsletter/"Pague com"/Selos/atribuição LI integrada)
-- [ ] Implementar a captura real da Skill 1 (URL/Figma) e a geração de comps da Skill 2
-- [ ] Empacotar como plugin Claude Code para as agências
+- [x] **Baseline RENDERADO na Skill 1** (`scripts/capture-source.mjs`, Chrome headless) —
+      `rendered.html` (DOM pós-JS) + `bands.json` (torre de faixas com modo/texto/imgs) +
+      `full.png`, gravados em `reference/`. Fecha a brecha-raiz: o inventário/loop de comp diffa
+      contra o **render ground-truth** (não `curl`/HTML cru nem descrição textual auto-autorada),
+      **falha-fechado** sem baseline. `curl` fica só p/ cor+assets. Validado em caso real (pegou
+      tarja+USP+7 vitrines+bloco editorial que o HTML cru escondia).
+- [x] **`theme_mode` (modo único light/dark)**: a Skill 2 passa a decidir um modo único como
+      default — misturas inconsistentes do site-fonte viram **débito de usabilidade**, não
+      paridade a preservar. O **dark-chrome híbrido** (chrome escuro + conteúdo claro) deixa de
+      ser o método padrão e vira **exceção cara e isolada**
+      ([dark-hybrid-exception.md](skills/li-render-store-builder/references/dark-hybrid-exception.md)),
+      só lida quando o kit pede híbrido explicitamente.
+- [x] **Skill 2 reframada em 2 papéis + inventário de paridade**: (a) **auditar** paridade
+      funcional + de conteúdo do site-fonte contra um catálogo canônico BR
+      ([content-surfaces.md](skills/store-design-composer/references/content-surfaces.md)) e
+      produzir `migration-inventory.json` (contrato novo,
+      [skills/shared/migration-inventory-spec/](skills/shared/migration-inventory-spec/)); (b)
+      aplicar os tokens do kit e **modernizar sem perder paridade**. A Skill 2 passa a ter 5
+      fases (nova Fase 2 = Inventariar); o gate do inventário **só alerta, nunca bloqueia** — a
+      decisão final é sempre do humano (Fase 5).
+- [x] **Craft "herdar × ganhar"**
+      ([design-quality.md](skills/store-design-composer/references/design-quality.md)): régua
+      que separa o que a migração deve **herdar** do kit (paleta/fonte/voz/logo/raio, sem
+      reinventar) do que deve **ganhar** em craft mecânico (layout, espaçamento, contraste,
+      estados, responsivo, motion) — sem virar licença para inventar conteúdo que o site-fonte
+      não tem.
+- [x] **Campo `layout`** no brand-kit (`contained`/`fluid-up`, `max_width`, `gutter`,
+      `full_bleed`) — decisão de largura consumida pelas 3 skills.
+- [x] **Enforcement hardening do gate da Skill 3**: "pronto" virou **artefato**, não veredito —
+      `locked` exige evidência de diff **e** um verificador diferente de quem implementou; o
+      orquestrador não edita mais nenhum arquivo (fundação inclusa, sempre por sub-agente); a
+      Skill 3 sempre começa em sessão fresca (lê arquivos, não memória de conversa das Skills 1/2).
+- [x] **Empacotado como plugin do Claude Code** (marketplace no repo, skills sob `skills/`)
+- [ ] Implementar a porta **Figma** da Skill 1 (mesmo contrato, captura diferente) e a geração
+      automática de comps da Skill 2
 
 ## Referências
 - Doc oficial do LI Render: `https://{slug}-preview.lojas.li/.docs/` — a mesma doc é

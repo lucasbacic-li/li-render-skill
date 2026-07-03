@@ -15,7 +15,7 @@ Fase 3: materializar o perfil destilado no formato do contrato
 │   ├── logo.svg / symbol.svg / favicon.png
 │   ├── fonts/         ← só se source:"file"
 │   └── imagery/       ← amostras (referência)
-└── reference/         ← screenshots da origem
+└── reference/         ← baseline RENDERADO: <label>.rendered.html + .bands.json + .full.png
 ```
 
 ## `brand.kit.json`
@@ -62,10 +62,17 @@ logo, raio, voz/tagline, e uma seção **"A confirmar"** listando `_uncertain`.
 É o que o parceiro lê na Fase 4.
 
 ## assets/ e reference/
-- Logos/símbolos/favicon normalizados (SVG quando possível).
+- Logos/símbolos/favicon normalizados (**SVG vetorial quando existir no fonte** — procure
+  em `arquivos/`, não só o `<img class="logo">` PNG).
 - `fonts/` só com `.woff2`/`.ttf` self-hosted (source:"file").
-- `imagery/` com 1–3 amostras representativas (hero/produto/editorial).
-- `reference/` com os screenshots da origem — **referência, não build**.
+- `imagery/` com **TODOS os banners/tiles/editorial reais** do fonte (hero, tiles de
+  categoria, blocos editoriais) + um punhado de **imagens de produto** — não 1-3 amostras.
+  São o conteúdo a migrar; a Skill 2 monta os comps a partir daqui **sem reabrir o site**
+  (placeholder no comp = falha de paridade). Pré-redimensione p/ peso se necessário.
+- `reference/` com o **baseline renderado** por superfície (`<label>.rendered.html` +
+  `.bands.json` + `.full.png`), gerado por `scripts/capture-source.mjs` — **referência, não
+  build**. É a baseline ground-truth que a Skill 2 inventaria e diffa, **sem reabrir o fonte**.
+  Um `README.md` opcional pode resumir o `bands.json`, mas não o substitui.
 
 ## Checagem final antes da Fase 4
 - [ ] `brand.kit.json` valida contra o spec (9 papéis de cor, papéis de tipo).
