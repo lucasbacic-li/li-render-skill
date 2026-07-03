@@ -12,6 +12,5 @@ builds/
 .li/
 *.session
 
-# Claude Code local (permissões/sessão da máquina do dev — nunca no repo distribuído)
-.claude/settings.local.json
-.claude/scheduled_tasks.lock
+# Claude Code local (scaffolding/sessão da máquina do dev — nunca no repo distribuído)
+.claude/
