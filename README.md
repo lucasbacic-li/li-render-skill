@@ -143,6 +143,9 @@ skills/                            ← as skills + contratos (descobertas pelo C
 
 ## Estado
 
+> Snapshot do que já funciona vs. o que falta. Para o histórico de como chegamos aqui
+> (o que mudou de uma versão pra outra), ver [CHANGELOG.md](CHANGELOG.md).
+
 - [x] **Contratos v1**: `brand-kit` (dado) + `litheme-capabilities` (restrição)
 - [x] **Skill 3** validada ponta-a-ponta e **re-ancorada no litheme real** (v49)
 - [x] **Faseamento ORQUESTRADO** na Skill 3 (orquestrador fino + 1 sub-agente por
